@@ -9,10 +9,77 @@
 
   const ASSET_BASE = root.getAttribute('data-asset-base') || '';
   const ASSETS = {
-    // 支援 Webflow CDN 帶亂碼之檔名對應
+    // ==========================================
+    // A. 背景裝飾與輔助向量 (共 5 項，SVG 保持不變)
+    // ==========================================
+    "curve.svg": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13806db332cece419759_curve_figma.svg",
+    "deco_ellipse.svg": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380fae7d56f2395825c_deco_ellipse.svg",
+    "brush.svg": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13804f1bfe253bc8fcc7_brush.svg",
+    "btn_left.svg": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380ae8c81a49084de26_btn_left.svg",
+    "btn_right.svg": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138031ce4c749af5c16e_btn_right.svg",
+
+    // ==========================================
+    // B. 各 Phase 首頁主圖與原石小圖 (共 10 項，已轉為 .avif)
+    // ==========================================
+    "phase01-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1381b4d5b0c8164f2a2c_phase01-img.avif",
+    "phase02-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13808cefba012e6ea6fb_phase02-img.avif",
+    "phase03-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1381cdd337debbb7b147_phase03-img.avif",
+    "phase04-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380b4d5b0c8164f2a11_phase04-img.avif",
+    "rock01.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13804b19aa9175fe8798_rock01.avif",
+    "rock02.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138038881bba415dfce1_rock02.avif",
+    "rock03.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380cdd337debbb7b11a_rock03.avif",
+    "rock04.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380252649e5ead3177d_rock04.avif",
+    "rock.avif": "",
+    "stone.avif": "",
+
+    // ==========================================
+    // C. Phase 01 卡片內容插圖 (8 張，已轉為 .avif)
+    // ==========================================
+    "01_探查.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13824f1bfe253bc8fd44_01_%E6%8E%A2%E6%9F%A5.avif",
+    "02_理解.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13826db332cece4197b4_02_%E7%90%86%E8%A7%A3.avif",
+    "03_評估都市計畫.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1382c816eb85bbdd7261_03_%E8%A9%95%E4%BC%B0%E9%83%BD%E5%B8%82%E8%A8%88%E7%95%AB.avif",
+    "04_土管規則條件.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138231ce4c749af5c1be_04_%E5%9C%9F%E7%AE%A1%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6.avif",
+    "05_產品定位.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138233e846e23b741f59_05_%E7%94%A2%E5%93%81%E5%AE%9A%E4%BD%8D.avif",
+    "06_區域脈絡與人口結構.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13824b19aa9175fe87e3_06_%E5%8D%80%E5%9F%9F%E8%84%88%E7%B5%A1%E8%88%87%E4%BA%BA%E5%8F%A3%E7%B5%90%E6%A7%8B.avif",
+    "07_生活機能.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138231ce4c749af5c1ce_07_%E7%94%9F%E6%B4%BB%E6%A9%9F%E8%83%BD.avif",
+    "08_購屋習慣與銷售時機.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1382f993e067e015868d_08_%E8%B3%BC%E5%B1%8B%E7%BF%92%E6%85%A3%E8%88%87%E9%8A%B7%E5%94%AE%E6%99%82%E6%A9%9F.avif",
+
+    // ==========================================
+    // D. Phase 02 卡片內容插圖 (3 張，已轉為 .avif)
+    // ==========================================
+    "09_房型規劃.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13831efce99d35b74375_09_%E6%88%BF%E5%9E%8B%E8%A6%8F%E5%8A%83.avif",
+    "10_公設配置.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383d423991cbf9166f0_10_%E5%85%AC%E8%A8%AD%E9%85%8D%E7%BD%AE.avif",
+    "11_室內格局.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383d423991cbf9166f3_11_%E5%AE%A4%E5%85%A7%E6%A0%BC%E5%B1%80.avif",
+
+    // ==========================================
+    // E. Phase 03 卡片內容插圖 (4 張，已轉為 .avif)
+    // ==========================================
+    "12_品牌語言.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138386e309da498943d5_12_%E5%93%81%E7%89%8C%E8%AA%9E%E8%A8%80.avif",
+    "13_沉浸式行銷的體驗設計.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13830ebe54f4c0323553_14_%E5%AA%92%E9%AB%94%E7%AD%96%E7%95%A5.avif",
+    "14_媒體策略.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13830ebe54f4c0323553_14_%E5%AA%92%E9%AB%94%E7%AD%96%E7%95%A5.avif",
+    "15_互動溝通.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383d5d0de7797f9a734_15_%E4%BA%92%E5%8B%95%E6%BA%9D%E9%80%9A.avif",
+
+    // ==========================================
+    // F. Phase 04 卡片內容插圖 (4 張，已轉為 .avif)
+    // ==========================================
+    "16_驗屋服務.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383b4f6d005885c0712_16_%E9%A9%97%E5%B1%8B%E6%9C%8D%E5%8B%99.avif",
+    "17_建立修繕通報機制.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1384fae7d56f239582d2_17_%E5%BB%BA%E7%AB%8B%E4%BF%AE%E7%B9%95%E9%80%9A%E5%A0%B1%E6%A9%9F%E5%88%B6.avif",
+    "18_說明會與區權會.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13845f514da625d1f87a_18_%E8%AA%AA%E6%98%8E%E6%9C%83%E8%88%87%E5%8D%80%E6%AC%8A%E6%9C%83.avif",
+    "19_建立社區總體營造.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1384b4d5b0c8164f2ad7_19_%E5%BB%BA%E7%AB%8B%E7%A4%BE%E5%8D%80%E7%B8%BD%E9%AB%94%E7%87%9F%E9%80%A0.avif"
   };
+
+  // 智慧資源定位器：支援 .avif / .webp / .png 交叉比對，無論填寫哪種副檔名皆可自動對應
   function asset(name) {
-    return ASSETS[name] || (ASSET_BASE + encodeURIComponent(name));
+    if (!name) return '';
+    // 1. 完全吻合
+    if (ASSETS[name]) return ASSETS[name];
+    // 2. 移除副檔名後進行跨格式 (avif -> webp -> png) 查找
+    const baseName = name.replace(/\.(png|jpe?g|webp|avif)$/i, '');
+    if (ASSETS[baseName + '.avif']) return ASSETS[baseName + '.avif'];
+    if (ASSETS[baseName + '.webp']) return ASSETS[baseName + '.webp'];
+    if (ASSETS[baseName + '.png']) return ASSETS[baseName + '.png'];
+    // 3. Fallback
+    return ASSET_BASE ? (ASSET_BASE + encodeURIComponent(name)) : name;
   }
 
   // 替換現有 DOM 中的圖片路徑
@@ -169,8 +236,8 @@ const phase01Queue = [
         img: "08_購屋習慣與銷售時機.png",
         nextImg: "01_探查.png",
         caption: "市場會改變，購屋需求也會隨政策、區域發展與生活方式持續變化。我們透過市場調查與購屋習慣，分析目標族群與購屋契機，協助建設團隊調整產品與銷售策略。在市場變化中掌握節奏，讓產品在適合的時間，被真正需要的人看見。"
-      }
     ];
+    phase01Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
     let currentState = 'default';
     let isTransitioning = false;
@@ -1119,8 +1186,8 @@ const phase01Queue = [
         img: "11_室內格局.png",
         nextImg: "09_房型規劃.png",
         caption: "格局，決定生活如何在空間裡流動。我們從居住者的角度檢視動線、採光、尺度與空間關係，思考每一道牆、每一個轉角是否符合真實使用。讓格局不只成立於圖面，也真正成立於每天的生活。"
-      }
     ];
+    phase02Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
     let currentPhase2State = 'default';
     let currentSentenceIndex2 = null;
@@ -1179,8 +1246,8 @@ const phase01Queue = [
         img: "15_互動溝通.png",
         nextImg: "12_品牌語言.png",
         caption: "互動溝通，從傾聽開始。透過現場對談、社群留言、問卷與各種接觸點，理解消費者對生活與家的期待，再將這些回饋轉化為建設團隊可以參考的方向。同時，也將品牌的理念清楚傳回市場，讓建設方、消費者與我們之間形成持續而良性的溝通。"
-      }
     ];
+    phase03Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
     let currentPhase3State = 'default';
     let currentSentenceIndex3 = null;
@@ -1238,8 +1305,8 @@ const phase01Queue = [
         img: "19_建立社區總體營造.png",
         nextImg: "16_驗屋服務.png",
         caption: "一個社區的形成，不只來自建築，也來自人與人之間的關係。從公共空間、管理制度到社區活動，我們協助建設團隊建立更完整的生活體驗，讓住戶有更多交流與參與的機會。讓品牌價值從交屋延伸進日常，逐漸形成真正能被感受、被信任的社區關係。"
-      }
     ];
+    phase04Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
     let currentPhase4State = 'default';
     let currentSentenceIndex4 = null;
