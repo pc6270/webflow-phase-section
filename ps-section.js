@@ -236,7 +236,8 @@ const phase01Queue = [
         img: "card_08.avif",
         nextImg: "card_01.avif",
         caption: "市場會改變，購屋需求也會隨政策、區域發展與生活方式持續變化。我們透過市場調查與購屋習慣，分析目標族群與購屋契機，協助建設團隊調整產品與銷售策略。在市場變化中掌握節奏，讓產品在適合的時間，被真正需要的人看見。"
-    ];
+    }
+  ];
     phase01Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
     let currentState = 'default';
