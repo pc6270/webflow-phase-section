@@ -1191,6 +1191,7 @@ const phase01Queue = [
         img: "card_11.avif",
         nextImg: "card_09.avif",
         caption: "格局，決定生活如何在空間裡流動。我們從居住者的角度檢視動線、採光、尺度與空間關係，思考每一道牆、每一個轉角是否符合真實使用。讓格局不只成立於圖面，也真正成立於每天的生活。"
+      }
     ];
     phase02Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
@@ -1251,6 +1252,7 @@ const phase01Queue = [
         img: "card_15.avif",
         nextImg: "card_12.avif",
         caption: "互動溝通，從傾聽開始。透過現場對談、社群留言、問卷與各種接觸點，理解消費者對生活與家的期待，再將這些回饋轉化為建設團隊可以參考的方向。同時，也將品牌的理念清楚傳回市場，讓建設方、消費者與我們之間形成持續而良性的溝通。"
+      }
     ];
     phase03Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
@@ -1310,6 +1312,7 @@ const phase01Queue = [
         img: "card_19.avif",
         nextImg: "card_16.avif",
         caption: "一個社區的形成，不只來自建築，也來自人與人之間的關係。從公共空間、管理制度到社區活動，我們協助建設團隊建立更完整的生活體驗，讓住戶有更多交流與參與的機會。讓品牌價值從交屋延伸進日常，逐漸形成真正能被感受、被信任的社區關係。"
+      }
     ];
     phase04Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
 
