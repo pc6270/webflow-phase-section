@@ -35,37 +35,37 @@
     // ==========================================
     // C. Phase 01 卡片內容插圖 (8 張，已轉為 .avif)
     // ==========================================
-    "01_探查.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13824f1bfe253bc8fd44_01_%E6%8E%A2%E6%9F%A5.avif",
-    "02_理解.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13826db332cece4197b4_02_%E7%90%86%E8%A7%A3.avif",
-    "03_評估都市計畫.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1382c816eb85bbdd7261_03_%E8%A9%95%E4%BC%B0%E9%83%BD%E5%B8%82%E8%A8%88%E7%95%AB.avif",
-    "04_土管規則條件.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138231ce4c749af5c1be_04_%E5%9C%9F%E7%AE%A1%E8%A6%8F%E5%89%87%E6%A2%9D%E4%BB%B6.avif",
-    "05_產品定位.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138233e846e23b741f59_05_%E7%94%A2%E5%93%81%E5%AE%9A%E4%BD%8D.avif",
-    "06_區域脈絡與人口結構.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13824b19aa9175fe87e3_06_%E5%8D%80%E5%9F%9F%E8%84%88%E7%B5%A1%E8%88%87%E4%BA%BA%E5%8F%A3%E7%B5%90%E6%A7%8B.avif",
-    "07_生活機能.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138231ce4c749af5c1ce_07_%E7%94%9F%E6%B4%BB%E6%A9%9F%E8%83%BD.avif",
-    "08_購屋習慣與銷售時機.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1382f993e067e015868d_08_%E8%B3%BC%E5%B1%8B%E7%BF%92%E6%85%A3%E8%88%87%E9%8A%B7%E5%94%AE%E6%99%82%E6%A9%9F.avif",
+    "card_01.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7484c816eb85bbf2b89c_01_card.avif",
+    "card_02.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7484c950039fcd0894a8_02_card.avif",
+    "card_03.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7484ff2549290e893275_03_card.avif",
+    "card_04.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7484fae7d56f23aa9425_04_card.avif",
+    "card_05.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74846f0aa25f884ec608_05_card.avif",
+    "card_06.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74844b19aa917513c427_06_card.avif",
+    "card_07.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7484f50d04eab301ffe2_07_card.avif",
+    "card_08.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74830ebe54f4c04653d3_08_card.avif",
 
     // ==========================================
     // D. Phase 02 卡片內容插圖 (3 張，已轉為 .avif)
     // ==========================================
-    "09_房型規劃.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13831efce99d35b74375_09_%E6%88%BF%E5%9E%8B%E8%A6%8F%E5%8A%83.avif",
-    "10_公設配置.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383d423991cbf9166f0_10_%E5%85%AC%E8%A8%AD%E9%85%8D%E7%BD%AE.avif",
-    "11_室內格局.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383d423991cbf9166f3_11_%E5%AE%A4%E5%85%A7%E6%A0%BC%E5%B1%80.avif",
+    "card_09.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7483252649e5eae6d0cb_09_card.avif",
+    "card_10.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74840ebe54f4c04653f8_10_card.avif",
+    "card_11.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74841efce99d35cba2e8_11_card.avif",
 
     // ==========================================
     // E. Phase 03 卡片內容插圖 (4 張，已轉為 .avif)
     // ==========================================
-    "12_品牌語言.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138386e309da498943d5_12_%E5%93%81%E7%89%8C%E8%AA%9E%E8%A8%80.avif",
-    "13_沉浸式行銷的體驗設計.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13830ebe54f4c0323553_14_%E5%AA%92%E9%AB%94%E7%AD%96%E7%95%A5.avif",
-    "14_媒體策略.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13830ebe54f4c0323553_14_%E5%AA%92%E9%AB%94%E7%AD%96%E7%95%A5.avif",
-    "15_互動溝通.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383d5d0de7797f9a734_15_%E4%BA%92%E5%8B%95%E6%BA%9D%E9%80%9A.avif",
+    "card_12.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74853715fdc430c60fab_12_card.avif",
+    "card_13.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74841a0f9d9c63514810_13_card.avif",
+    "card_14.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74845f514da625e6a77e_14_card.avif",
+    "card_15.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc748454f9656736f45f9a_15_card.avif",
 
     // ==========================================
     // F. Phase 04 卡片內容插圖 (4 張，已轉為 .avif)
     // ==========================================
-    "16_驗屋服務.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1383b4f6d005885c0712_16_%E9%A9%97%E5%B1%8B%E6%9C%8D%E5%8B%99.avif",
-    "17_建立修繕通報機制.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1384fae7d56f239582d2_17_%E5%BB%BA%E7%AB%8B%E4%BF%AE%E7%B9%95%E9%80%9A%E5%A0%B1%E6%A9%9F%E5%88%B6.avif",
-    "18_說明會與區權會.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13845f514da625d1f87a_18_%E8%AA%AA%E6%98%8E%E6%9C%83%E8%88%87%E5%8D%80%E6%AC%8A%E6%9C%83.avif",
-    "19_建立社區總體營造.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1384b4d5b0c8164f2ad7_19_%E5%BB%BA%E7%AB%8B%E7%A4%BE%E5%8D%80%E7%B8%BD%E9%AB%94%E7%87%9F%E9%80%A0.avif"
+    "card_16.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74831efce99d35cba2ca_16_card.avif",
+    "card_17.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74853715fdc430c60fc3_17_card.avif",
+    "card_18.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74855ed8eae53b67c3ea_18_card.avif",
+    "card_19.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc748554f9656736f45fae_19_card.avif"
   };
 
   // 智慧資源定位器：支援 .avif / .webp / .png 交叉比對，無論填寫哪種副檔名皆可自動對應
@@ -163,8 +163,8 @@ const phase01Queue = [
         titleEn: "EXPLORE",
         highlightWord: "探查",
         sentenceIndex: 0,
-        img: "01_探查.png",
-        nextImg: "02_理解.png",
+        img: "card_01.avif",
+        nextImg: "card_02.avif",
         caption: "走進基地與街區，觀察在地消費、人潮、生活氛圍與步調。除了數據，我們也用雙腳感受土地；從街道、人流到日常生活的細節，一路記錄、一路思考，找出這片土地真正的樣貌與可能。"
       },
       {
@@ -173,8 +173,8 @@ const phase01Queue = [
         titleEn: "UNDERSTAND",
         highlightWord: "理解",
         sentenceIndex: 0,
-        img: "02_理解.png",
-        nextImg: "03_評估都市計畫.png",
+        img: "card_02.avif",
+        nextImg: "card_03.avif",
         caption: "理解，從傾聽開始。透過與建設團隊深入對談，理解品牌對土地的態度、對建築的期待，以及對居住者與城市的責任。我們將這些理念與堅持，整理成清楚的策略與溝通方式，讓品牌真正被看見、被理解。"
       },
       {
@@ -183,8 +183,8 @@ const phase01Queue = [
         titleEn: "PLANNING",
         highlightWord: "評估都市計畫",
         sentenceIndex: 1,
-        img: "03_評估都市計畫.png",
-        nextImg: "04_土管規則條件.png",
+        img: "card_03.avif",
+        nextImg: "card_04.avif",
         caption: "都市計畫，描繪的是一個區域未來的樣子。從公共建設、交通發展、產業聚落到商圈與人流變化，我們梳理區域發展趨勢，思考未來生活圈可能如何形成。透過長期視角，協助建設團隊掌握土地的發展契機，提前布局。"
       },
       {
@@ -193,8 +193,8 @@ const phase01Queue = [
         titleEn: "ZONING",
         highlightWord: "土管規則條件",
         sentenceIndex: 1,
-        img: "04_土管規則條件.png",
-        nextImg: "05_產品定位.png",
+        img: "card_04.avif",
+        nextImg: "card_05.avif",
         caption: "法規不是只有限制，也決定一塊土地能如何被好好使用。從棟距、採光通風、格局動線到車位比例，我們在法規條件中思考居住品質，也從市場角度提出產品建議。在限制中找出更好的解法，讓設計效益與生活需求取得平衡。"
       },
       {
@@ -203,8 +203,8 @@ const phase01Queue = [
         titleEn: "PRODUCT POSITIONING",
         highlightWord: "產品定位",
         sentenceIndex: 2,
-        img: "05_產品定位.png",
-        nextImg: "06_區域脈絡與人口結構.png",
+        img: "card_05.avif",
+        nextImg: "card_06.avif",
         caption: "數據，是理解市場的重要方式。從實價登錄、人口統計到購屋族群，分析誰可能住在這裡、他們需要什麼樣的生活。將不同族群的需求，轉化為產品規劃的依據，讓空間更貼近真正的使用者。"
       },
       {
@@ -213,8 +213,8 @@ const phase01Queue = [
         titleEn: "LOCAL CONTEXT",
         highlightWord: "區域脈絡與人口結構",
         sentenceIndex: 2,
-        img: "06_區域脈絡與人口結構.png",
-        nextImg: "07_生活機能.png",
+        img: "card_06.avif",
+        nextImg: "card_07.avif",
         caption: "理解一個區域，不只看數據，也要走進真實的生活。從城市發展、商圈變化到人口遷移，我們同時觀察大環境與街區細節，理解一個地方如何形成自己的生活節奏。讓建築不只是落在土地上，而能真正融入城市與社區。"
       },
       {
@@ -223,8 +223,8 @@ const phase01Queue = [
         titleEn: "AMENITIES",
         highlightWord: "生活機能",
         sentenceIndex: 2,
-        img: "07_生活機能.png",
-        nextImg: "08_購屋習慣與銷售時機.png",
+        img: "card_07.avif",
+        nextImg: "card_08.avif",
         caption: "生活機能，不只是地圖上的距離，而是每天生活是否方便。我們實際走訪街區，了解採買、交通、學區、公園與休閒環境，從居住者角度思考一天的生活路徑。因為真正重要的，是住進來之後，每一天是否自然、順手、安心。"
       },
       {
@@ -233,8 +233,8 @@ const phase01Queue = [
         titleEn: "HABITS & TIMING",
         highlightWord: "購屋習慣與銷售時機",
         sentenceIndex: 2,
-        img: "08_購屋習慣與銷售時機.png",
-        nextImg: "01_探查.png",
+        img: "card_08.avif",
+        nextImg: "card_01.avif",
         caption: "市場會改變，購屋需求也會隨政策、區域發展與生活方式持續變化。我們透過市場調查與購屋習慣，分析目標族群與購屋契機，協助建設團隊調整產品與銷售策略。在市場變化中掌握節奏，讓產品在適合的時間，被真正需要的人看見。"
     ];
     phase01Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
@@ -422,8 +422,9 @@ const phase01Queue = [
     }
 
     function resetCardSlots(pageNum) {
-      const pageData = phase01Pages[pageNum - 1];
-      const isMobile = document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
+      const p = (typeof pageNum === 'number' && pageNum >= 1 && pageNum <= 8) ? pageNum : 1;
+      const pageData = phase01Pages[p - 1];
+      const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
 
       cardRoles = { main: 0, sub: 1, spare: 2 };
       const s0 = document.getElementById('cardSlot0');
@@ -435,9 +436,12 @@ const phase01Queue = [
       s1.style.transition = 'none';
       s2.style.transition = 'none';
 
-      document.getElementById('imgSlot0').src = pageData.img;
-      document.getElementById('imgSlot1').src = pageData.nextImg;
-      document.getElementById('imgSlot2').src = pageData.nextImg;
+      const img0 = document.getElementById('imgSlot0');
+      const img1 = document.getElementById('imgSlot1');
+      const img2 = document.getElementById('imgSlot2');
+      if (img0 && pageData.img) img0.src = pageData.img;
+      if (img1 && pageData.nextImg) img1.src = pageData.nextImg;
+      if (img2 && pageData.nextImg) img2.src = pageData.nextImg;
 
       if (isMobile) {
         s0.style.transform = 'translateX(0)';
@@ -1163,8 +1167,8 @@ const phase01Queue = [
         titleEn: "TYPOLOGY",
         highlightWord: "房型規劃",
         sentenceIndex: 0,
-        img: "09_房型規劃.png",
-        nextImg: "10_公設配置.png",
+        img: "card_09.avif",
+        nextImg: "card_10.avif",
         caption: "房型規劃，是對不同生活方式的回應。有人需要小而精準的空間，也有人期待更寬裕、能承接未來變化的生活尺度。我們從客層、生活習慣與真實需求出發，在坪數、機能與舒適度之間找到平衡，讓房型真正符合居住者的生活。"
       },
       {
@@ -1173,8 +1177,8 @@ const phase01Queue = [
         titleEn: "COMMON AREAS",
         highlightWord: "公設配置",
         sentenceIndex: 0,
-        img: "10_公設配置.png",
-        nextImg: "11_室內格局.png",
+        img: "card_10.avif",
+        nextImg: "card_11.avif",
         caption: "公設不是制式設備的堆疊，而是生活的延伸。從住戶的年齡、需求與使用習慣出發，規劃真正會被使用的空間，同時考慮交屋後的管理與維護。讓每一項公設不只好看，也能長久、實用地陪伴生活。"
       },
       {
@@ -1183,8 +1187,8 @@ const phase01Queue = [
         titleEn: "LAYOUT",
         highlightWord: "室內格局",
         sentenceIndex: 0,
-        img: "11_室內格局.png",
-        nextImg: "09_房型規劃.png",
+        img: "card_11.avif",
+        nextImg: "card_09.avif",
         caption: "格局，決定生活如何在空間裡流動。我們從居住者的角度檢視動線、採光、尺度與空間關係，思考每一道牆、每一個轉角是否符合真實使用。讓格局不只成立於圖面，也真正成立於每天的生活。"
     ];
     phase02Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
@@ -1213,8 +1217,8 @@ const phase01Queue = [
         titleEn: "BRAND NARRATIVE",
         highlightWord: "品牌語言",
         sentenceIndex: 0,
-        img: "12_品牌語言.png",
-        nextImg: "13_沉浸式行銷的體驗設計.png",
+        img: "card_12.avif",
+        nextImg: "card_13.avif",
         caption: "品牌語言不是口號，而是品牌與市場溝通的方式。我們從品牌核心出發，將理念轉化為清楚、貼近人的文字與敘事，讓理性的產品資訊與感性的生活想像自然連結。讓品牌想說的話，更準確地被理解。"
       },
       {
@@ -1223,8 +1227,8 @@ const phase01Queue = [
         titleEn: "IMMERSIVE",
         highlightWord: "沉浸式行銷的體驗設計",
         sentenceIndex: 1,
-        img: "13_沉浸式行銷的體驗設計.png",
-        nextImg: "14_媒體策略.png",
+        img: "card_13.avif",
+        nextImg: "card_14.avif",
         caption: "沉浸式行銷，是讓購屋者更具體地感受未來生活。從接待中心的光線、音樂、氣味，到參觀動線、模型、展牆、材質與陳設，每一個細節都影響品牌感受。我們協助建設團隊逐一檢視與調整，讓空間體驗、產品特色與品牌質感保持一致，也讓購屋者更容易走進建築所描繪的生活。"
       },
       {
@@ -1233,8 +1237,8 @@ const phase01Queue = [
         titleEn: "STRATEGY",
         highlightWord: "媒體策略",
         sentenceIndex: 2,
-        img: "14_媒體策略.png",
-        nextImg: "15_互動溝通.png",
+        img: "card_14.avif",
+        nextImg: "card_15.avif",
         caption: "不同的內容，需要不同的方式被看見。從平面廣告、社群內容、影片、官網到數位互動，我們依照受眾與平台特性安排媒體策略。透過流量與內容數據持續觀察成效，調整內容與投放方向，讓每一次溝通都更精準、更有效。"
       },
       {
@@ -1243,8 +1247,8 @@ const phase01Queue = [
         titleEn: "COMMUNICATION",
         highlightWord: "互動溝通",
         sentenceIndex: 2,
-        img: "15_互動溝通.png",
-        nextImg: "12_品牌語言.png",
+        img: "card_15.avif",
+        nextImg: "card_12.avif",
         caption: "互動溝通，從傾聽開始。透過現場對談、社群留言、問卷與各種接觸點，理解消費者對生活與家的期待，再將這些回饋轉化為建設團隊可以參考的方向。同時，也將品牌的理念清楚傳回市場，讓建設方、消費者與我們之間形成持續而良性的溝通。"
     ];
     phase03Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
@@ -1272,8 +1276,8 @@ const phase01Queue = [
         titleEn: "INSPECTION",
         highlightWord: "驗屋服務",
         sentenceIndex: 0,
-        img: "16_驗屋服務.png",
-        nextImg: "17_建立修繕通報機制.png",
+        img: "card_16.avif",
+        nextImg: "card_17.avif",
         caption: "以中立角度與專業儀器，逐項檢視工程品質與交屋細節。除了協助建設團隊把關品質，也讓購屋者更安心理解新家的狀況。讓驗屋成為建設方與住戶之間建立信任的一座橋樑。"
       },
       {
@@ -1282,8 +1286,8 @@ const phase01Queue = [
         titleEn: "MAINTENANCE",
         highlightWord: "建立修繕通報機制",
         sentenceIndex: 1,
-        img: "17_建立修繕通報機制.png",
-        nextImg: "18_說明會與區權會.png",
+        img: "card_17.avif",
+        nextImg: "card_18.avif",
         caption: "透過修繕管理平台，串聯住戶、物業與建設團隊。讓問題可以即時回報，維修進度與紀錄清楚可追蹤，也讓每一個反饋都被完整留下。對住戶而言，是更安心的服務；對建設團隊而言，也能持續了解實際居住後的需求。"
       },
       {
@@ -1292,8 +1296,8 @@ const phase01Queue = [
         titleEn: "MEETING",
         highlightWord: "說明會與區權會",
         sentenceIndex: 1,
-        img: "18_說明會與區權會.png",
-        nextImg: "19_建立社區總體營造.png",
+        img: "card_18.avif",
+        nextImg: "card_19.avif",
         caption: "協助建設團隊規劃與主持各類說明會及區權會，清楚說明社區規劃、管理方式與住戶權益。透過透明的資訊與耐心溝通，減少理解落差，也讓建設方的專業與用心被住戶真正感受到。"
       },
       {
@@ -1302,8 +1306,8 @@ const phase01Queue = [
         titleEn: "COMMUNITY",
         highlightWord: "建立社區總體營造",
         sentenceIndex: 1,
-        img: "19_建立社區總體營造.png",
-        nextImg: "16_驗屋服務.png",
+        img: "card_19.avif",
+        nextImg: "card_16.avif",
         caption: "一個社區的形成，不只來自建築，也來自人與人之間的關係。從公共空間、管理制度到社區活動，我們協助建設團隊建立更完整的生活體驗，讓住戶有更多交流與參與的機會。讓品牌價值從交屋延伸進日常，逐漸形成真正能被感受、被信任的社區關係。"
     ];
     phase04Pages.forEach(p => { p.img = asset(p.img); p.nextImg = asset(p.nextImg); });
@@ -1411,13 +1415,6 @@ const phase01Queue = [
       let ok = true;
 
       if (phase === '1') {
-        const bgCurve2 = document.getElementById('bgDefaultCurve2');
-        if (bgCurve2) bgCurve2.classList.add('is-hidden');
-        const bgCurve3 = document.getElementById('bgDefaultCurve3');
-        if (bgCurve3) bgCurve3.classList.add('is-hidden');
-        const bgCurve4 = document.getElementById('bgDefaultCurve4');
-        if (bgCurve4) bgCurve4.classList.add('is-hidden');
-
         if (kind === 'default') {
           // 桌面/平板沒有 Intro 錨點：'01-1' 視同首頁
           const accept = currentState === 'default' || (!isMobileView() && currentState === '01-1');
@@ -1432,11 +1429,6 @@ const phase01Queue = [
           ok = typeof currentState === 'number';
         }
       } else if (phase === '2') {
-        const bgCurve3 = document.getElementById('bgDefaultCurve3');
-        if (bgCurve3) bgCurve3.classList.add('is-hidden');
-        const bgCurve4 = document.getElementById('bgDefaultCurve4');
-        if (bgCurve4) bgCurve4.classList.add('is-hidden');
-
         if (kind === 'default') {
           const accept = currentPhase2State === 'default' || (!isMobileView() && currentPhase2State === '02-1');
           if (!accept) setPhase2State('default');
@@ -1449,9 +1441,6 @@ const phase01Queue = [
           ok = typeof currentPhase2State === 'number';
         }
       } else if (phase === '3') {
-        const bgCurve4 = document.getElementById('bgDefaultCurve4');
-        if (bgCurve4) bgCurve4.classList.add('is-hidden');
-
         if (kind === 'default') {
           const accept = currentPhase3State === 'default' || (!isMobileView() && currentPhase3State === '03-1');
           if (!accept) setPhase3State('default');
@@ -3307,12 +3296,33 @@ const phase01Queue = [
     setupCardSwipeGestures();
     updateGlobalTopLeftBadge(1, false);
     updateCenterLineScroll();
-    const bgCurve2Init = document.getElementById('bgDefaultCurve2');
-    if (bgCurve2Init) bgCurve2Init.classList.add('is-hidden');
-    const bgCurve3Init = document.getElementById('bgDefaultCurve3');
-    if (bgCurve3Init) bgCurve3Init.classList.add('is-hidden');
-    const bgCurve4Init = document.getElementById('bgDefaultCurve4');
-    if (bgCurve4Init) bgCurve4Init.classList.add('is-hidden');
+
+    // 預先就位各 Phase 卡片槽位與圖片 (防止進入分頁時空白)
+    resetCardSlots(1);
+    resetCardSlots2(1);
+    resetCardSlots3(1);
+    resetCardSlots4(1);
+
+    // 支援首頁點擊切換：點擊首頁主圖或文案亦可平滑展開分頁卡片
+    const dv1 = document.getElementById('defaultVisual');
+    if (dv1) { dv1.style.cursor = 'pointer'; dv1.addEventListener('click', () => setState(1)); }
+    const dc1 = document.getElementById('defaultContent');
+    if (dc1) { dc1.style.cursor = 'pointer'; dc1.addEventListener('click', () => setState(1)); }
+
+    const dv2 = document.getElementById('defaultVisual2');
+    if (dv2) { dv2.style.cursor = 'pointer'; dv2.addEventListener('click', () => setPhase2State(1)); }
+    const dc2 = document.getElementById('defaultContent2');
+    if (dc2) { dc2.style.cursor = 'pointer'; dc2.addEventListener('click', () => setPhase2State(1)); }
+
+    const dv3 = document.getElementById('defaultVisual3');
+    if (dv3) { dv3.style.cursor = 'pointer'; dv3.addEventListener('click', () => setPhase3State(1)); }
+    const dc3 = document.getElementById('defaultContent3');
+    if (dc3) { dc3.style.cursor = 'pointer'; dc3.addEventListener('click', () => setPhase3State(1)); }
+
+    const dv4 = document.getElementById('defaultVisual4');
+    if (dv4) { dv4.style.cursor = 'pointer'; dv4.addEventListener('click', () => setPhase4State(1)); }
+    const dc4 = document.getElementById('defaultContent4');
+    if (dc4) { dc4.style.cursor = 'pointer'; dc4.addEventListener('click', () => setPhase4State(1)); }
 
     // 匯出全域 API (支援行內 onclick 與外部控制)
     window.setState = setState;
