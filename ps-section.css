@@ -36,7 +36,7 @@
       --color-gray-dark:       #838383;
       --color-gray-light:      #e0e0e0;
       --color-bg-rice-white:   #faf7f2;
-      --color-bg-container:    #f0ebe0;
+      --color-bg-container:    #FAF7F2;
       --color-white:           #ffffff;
 
       --font-display-cn: 'SweiSpringCJKtc', "Noto Serif TC", serif;
@@ -384,7 +384,7 @@
       bottom: -150vh;
       left: -150vw;
       right: -150vw;
-      background: var(--color-bg-container, #f0ebe0);
+      background: var(--color-bg-container, #FAF7F2);
       z-index: 0;
       pointer-events: none;
     }
@@ -392,14 +392,16 @@
     /* ==========================================================================
        3. 背景裝飾 (以網頁實際大小做 RWD cover image，圓圈完整不裁切)
        ========================================================================== */
-    /* 首頁背景：垂直翻轉 (scaleY(-1)) 置區塊頂，底部平滑淡出消除任何切線 */
+    /* 首頁背景：垂直翻轉 (scaleY(-1)) 置區塊頂，左右 100vw 滿版、全高覆蓋且平滑淡出 */
     .bg-default-curve {
       position: absolute;
       left: 50%;
       top: 0;
       bottom: auto;
       width: calc(max(100vw, 1440px) / var(--ps-scale, 1));
-      height: 800px;
+      min-width: calc(100vw / var(--ps-scale, 1));
+      height: 100%;
+      min-height: 1048px;
       transform: translateX(-50%) scaleY(-1);
       transform-origin: center center;
       object-fit: fill;
@@ -408,8 +410,8 @@
       z-index: 1;
       opacity: 1;
       transition: opacity 0.6s ease;
-      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 95%);
-      mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 95%);
+      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 100%);
     }
     .bg-default-curve.is-hidden {
       opacity: 0 !important;
@@ -1027,6 +1029,13 @@
       transform: none !important;
       overflow: visible; /* 允許背景漸層與圓圈光暈完整展開，絕不裁切 */
     }
+    .viewport-tablet .bg-default-curve {
+      width: calc(max(100vw, 1024px) / var(--ps-scale, 1));
+      min-width: calc(100vw / var(--ps-scale, 1));
+      height: 100%;
+      min-height: 1366px;
+      object-fit: cover;
+    }
     .viewport-tablet .phase-vertical-tag {
       left: var(--side-rail-inner-x, var(--tab-side-phase-x, 53px));
       top: var(--tab-side-phase-y, 163px);
@@ -1195,8 +1204,10 @@
 
     /* 手機背景漸層修正：以網頁實際大小做 RWD cover image，圓圈完整無裁切 */
     .viewport-mobile .bg-default-curve {
-      width: calc(max(100vw, 760px) / var(--ps-scale, 1));
+      width: calc(max(100vw, 390px) / var(--ps-scale, 1));
+      min-width: calc(100vw / var(--ps-scale, 1));
       height: 520px;
+      min-height: 520px;
       left: 50%;
       right: auto;
       top: 0;
@@ -1502,7 +1513,7 @@
       position: relative;
       display: flex;
       justify-content: center;
-      background: var(--color-bg-container, #f0ebe0);
+      background: var(--color-bg-container, #FAF7F2);
       flex-shrink: 0;
     }
     #trackPhase01,
@@ -1511,8 +1522,9 @@
     #trackPhase04 {
       z-index: 10;
       position: relative;
-      background: var(--color-bg-container, #f0ebe0);
+      background: var(--color-bg-container, #FAF7F2);
     }
+    #trackPhase01,
     #trackPhase02,
     #trackPhase03,
     #trackPhase04 {
@@ -1524,6 +1536,7 @@
     .viewport-tablet .phase-scroll-track {
       height: calc(1366px + var(--tab-sticky-travel, 380px)) !important;
     }
+    .viewport-tablet #trackPhase01,
     .viewport-tablet #trackPhase02,
     .viewport-tablet #trackPhase03,
     .viewport-tablet #trackPhase04 {
@@ -1535,6 +1548,7 @@
     .viewport-mobile .phase-scroll-track {
       height: calc(874px + var(--mob-sticky-travel, 300px) + 120px) !important;
     }
+    .viewport-mobile #trackPhase01,
     .viewport-mobile #trackPhase02,
     .viewport-mobile #trackPhase03,
     .viewport-mobile #trackPhase04 {
@@ -1547,35 +1561,43 @@
       position: sticky !important;
       top: 0 !important;
       z-index: 10;
-      background: var(--color-bg-container, #f0ebe0);
+      background: var(--color-bg-container, #FAF7F2);
     }
 
     #sectionPhase02,
     #sectionPhase03,
     #sectionPhase04 {
-      background: var(--color-bg-container, #f0ebe0) !important;
+      background: var(--color-bg-container, #FAF7F2) !important;
       z-index: 10 !important;
       border: none !important;
       outline: none !important;
       box-shadow: none !important;
     }
 
-    /* 桌面端 Phase 02, 03, 04 (保持與 Phase 01 一致的 1048px 高度與左側區塊相對位置，維持完美視覺一致性) */
+    /* 桌面端 Phase 01, 02, 03, 04 (保持一致的 1048px 高度與左側區塊相對位置，維持完美視覺一致性) */
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #canvasFrame,
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase01,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase02,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase03,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase04 {
       height: 1048px;
     }
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #canvasFrame .section-title-box,
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase01 .section-title-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase02 .section-title-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase03 .section-title-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase04 .section-title-box {
       top: 153px;
     }
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #canvasFrame .default-content-box,
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase01 .default-content-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase02 .default-content-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase03 .default-content-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase04 .default-content-box {
       top: 231px;
     }
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #canvasFrame .page-content-box,
+    .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase01 .page-content-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase02 .page-content-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase03 .page-content-box,
     .canvas-viewport-wrapper:not(.viewport-tablet):not(.viewport-mobile) #sectionPhase04 .page-content-box {
@@ -1848,7 +1870,7 @@
   position: relative;
   width: 100%;
   overflow-x: clip; /* 防止全寬 cover 漸層引發水平捲軸，同時不破壞 sticky 效果 */
-  background: var(--color-bg-container, #f0ebe0);
+  background: var(--color-bg-container, #FAF7F2);
   --ps-nav-h: var(--header-h, 110px);
   --ps-scale: 1;
   display: flex !important;
