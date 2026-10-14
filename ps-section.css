@@ -316,11 +316,7 @@
     /* ========================================================
        2. 將前面做好的 .site-header 高度直接綁定此變數
        ======================================================== */
-    .site-header,
-    .navbar,
-    header {
-      height: var(--header-h) !important;
-    }
+    /* The host page owns its header height; JavaScript measures data-nav. */
 
     *, *::before, *::after {
       box-sizing: border-box;
@@ -1888,15 +1884,15 @@
 }
 @supports not (zoom: 1) {
   #ps-root .canvas-viewport-wrapper {
-    transform: scale(var(--ps-scale, 1));
+    transform: none;
     transform-origin: top center;
   }
 }
 
 /* Sticky Frame 頂部依固定導覽列高度即時位移，高度精確為 100vh - Header 高度 */
 #ps-root .sticky-frame {
-  top: var(--header-h, var(--ps-nav-h, 110px)) !important;
-  height: calc(100vh - var(--header-h, var(--ps-nav-h, 110px))) !important;
+  top: var(--ps-sticky-top, 0px) !important;
+  height: var(--ps-frame-height, 1048px) !important;
 }
 
 /* 僅進入 Phase 區塊時開啟原生 Scroll-snap，離開時自動解除 */
@@ -1916,3 +1912,220 @@ html.ps-snap {
 #ps-root .phone-stage-nav {
   transition: opacity 0.35s ease, visibility 0.35s ease;
 }
+
+/* Final phase: keep the incoming connector and end at its diamond. */
+#ps-root #centerConnectingLine4 {
+  height: 656px;
+}
+
+/* Responsive reading layout: width drives imagery; viewport height never shrinks text. */
+#ps-root { --mob-quote-size:19px; }
+#ps-root .canvas-viewport-wrapper { width:1440px; transition:none; }
+#ps-root .viewport-tablet { width:1024px; }
+#ps-root .carousel-card-slot img { -webkit-user-drag:none; user-select:none; }
+#ps-root .cards-stack-container { touch-action:pan-y pinch-zoom!important; }
+#ps-root .cards-stack-container.is-dragging { cursor:grabbing; }
+#ps-root button:disabled { opacity:.35;cursor:default; }
+#ps-root.ps-flow .sticky-frame { position:relative!important;top:0!important; }
+#ps-root.ps-flow .phase-scroll-track { height:auto!important;margin-top:0!important; }
+#ps-root .snap-anchor { scroll-margin-top:0; }
+html.ps-snap { scroll-snap-type:y proximity;scroll-padding-top:var(--ps-nav-h,0px); }
+#ps-root .canvas-frame::before { bottom:0;left:0;right:0; }
+#ps-root.viewport-mobile .canvas-viewport-wrapper { width:100%;zoom:1;transform:none; }
+#ps-root.viewport-mobile .phase-scroll-track { width:100%;height:auto!important;margin-top:0!important; }
+#ps-root.viewport-mobile .snap-anchor-intro,#ps-root.viewport-mobile .snap-anchor-page { display:none!important; }
+#ps-root.viewport-mobile .canvas-frame { width:100%;height:auto!important;min-height:calc(100svh - var(--ps-nav-h));position:relative!important;top:0!important;display:flex;flex-direction:column;gap:24px;padding:36px clamp(24px,7vw,46px) 48px;overflow:clip; }
+#ps-root.viewport-mobile .canvas-frame > :is(.section-title-box,.default-content-box,.default-visual-box,.page-content-box,.card-meta-header,.cards-stack-container,.card-caption-desc,.reel-page-indicator,.reel-nav-buttons) {position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;width:100%;transform:none!important;margin:0;z-index:10;}
+#ps-root.viewport-mobile .canvas-frame .is-hidden {display:none!important;}
+#ps-root.viewport-mobile .section-title-box {order:0;gap:6px;}
+#ps-root.viewport-mobile .section-title-en {font-size:18px;}
+#ps-root.viewport-mobile .section-title-cn {font-size:20px;letter-spacing:clamp(4px,3vw,12px);}
+#ps-root.viewport-mobile .default-content-box {order:1;}
+#ps-root.viewport-mobile .default-quote {font-size:max(18px,var(--mob-quote-size,19px));line-height:1.8;padding-left:18px;transform:none;}
+#ps-root.viewport-mobile .default-paragraph {display:block!important;font-size:18px!important;line-height:1.8;margin:18px 0 0;}
+#ps-root.viewport-mobile .default-visual-box {order:2;height:auto!important;aspect-ratio:580/530;max-width:520px;align-self:center;}
+#ps-root.viewport-mobile .default-rock-img {position:relative;width:100%;height:100%;object-fit:contain;}
+#ps-root.viewport-mobile .page-content-box {order:1;height:auto!important;}
+#ps-root.viewport-mobile .main-text-stage,#ps-root.viewport-mobile .sentence-tracks-wrapper {position:relative;height:auto!important;min-height:0;width:100%;mask-image:none;-webkit-mask-image:none;transform:none;}
+#ps-root.viewport-mobile .sentence-track.is-active {position:relative!important;width:100%;height:auto;transform:none;font-size:max(18px,var(--mob-quote-size,19px))!important;line-height:1.8!important;opacity:1;}
+#ps-root.viewport-mobile .sentence-track:not(.is-active) {display:none!important;}
+#ps-root.viewport-mobile .card-meta-header {order:2;}
+#ps-root.viewport-mobile .card-cat-cn {font-size:max(18px,var(--mob-title-cn-size,20px));line-height:1.6;}
+#ps-root.viewport-mobile .cards-stack-container {order:3;height:auto!important;aspect-ratio:312/209;overflow:hidden;--card-active-width:100%;--card-active-height:100%;}
+#ps-root.viewport-mobile .carousel-card-slot {width:100%;height:100%;}
+#ps-root.viewport-mobile .card-caption-desc {order:5;font-size:18px;line-height:1.8;letter-spacing:.48px;}
+#ps-root.viewport-mobile .reel-nav-buttons {order:4;display:flex!important;height:auto!important;justify-content:space-between;pointer-events:auto;}
+#ps-root.viewport-mobile .reel-nav-buttons .figma-styled-btn {position:relative;left:auto!important;top:auto!important;width:44px;height:44px;}
+#ps-root.viewport-mobile .reel-page-indicator {order:6;display:flex;justify-content:flex-end;}
+#ps-root.viewport-mobile .page-curr {font-size:36px!important;}
+#ps-root.viewport-mobile .page-total {font-size:18px!important;}
+#ps-root.viewport-mobile .canvas-frame :is(.bg-default-curve,.bg-page-ellipse-wrapper) {pointer-events:none;}
+#ps-root.viewport-mobile .bg-default-curve {width:100%;min-width:100%;}
+@supports not (zoom:1) { #ps-root .canvas-viewport-wrapper {width:100%;} #ps-root .canvas-frame {width:100%;overflow:auto;} }
+#ps-root.viewport-mobile .phone-stage-nav {left:max(8px,calc(env(safe-area-inset-left,0px) + 8px));bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 16px));}
+#ps-root.viewport-mobile .canvas-frame {padding-left:max(clamp(24px,7vw,46px),calc(env(safe-area-inset-left,0px) + 24px));padding-right:max(clamp(24px,7vw,46px),calc(env(safe-area-inset-right,0px) + 24px));padding-bottom:max(48px,calc(env(safe-area-inset-bottom,0px) + 24px));}
+#ps-root {container-type:inline-size;container-name:ps-phase;}
+@media (max-height:500px) {
+  @container ps-phase (min-width:760px) {
+    #ps-root.viewport-mobile .canvas-frame {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;column-gap:28px;}
+    #ps-root.viewport-mobile .canvas-frame .side-rock-icon {display:block!important;position:relative!important;left:auto!important;top:auto!important;width:68px!important;height:auto;opacity:1!important;transform:none!important;grid-column:1;grid-row:1;align-self:start;pointer-events:none;}
+    #ps-root.viewport-mobile .canvas-frame .section-title-box {grid-column:1;grid-row:2;}
+    #ps-root.viewport-mobile .canvas-frame .default-content-box {grid-column:1;grid-row:3;}
+    #ps-root.viewport-mobile .canvas-frame .default-quote {display:block!important;}
+    #ps-root.viewport-mobile .canvas-frame .default-visual-box {grid-column:2;grid-row:1/4;align-self:start;}
+    #ps-root.viewport-mobile .canvas-frame .page-content-box {grid-column:1;grid-row:3;}
+    #ps-root.viewport-mobile .canvas-frame .card-meta-header {grid-column:1;grid-row:4;}
+    #ps-root.viewport-mobile .canvas-frame .cards-stack-container {grid-column:2;grid-row:1/4;align-self:start;}
+    #ps-root.viewport-mobile .canvas-frame .card-caption-desc {grid-column:1;grid-row:5;}
+    #ps-root.viewport-mobile .canvas-frame .reel-nav-buttons {grid-column:2;grid-row:4;align-self:start;}
+    #ps-root.viewport-mobile .canvas-frame .reel-page-indicator {grid-column:2;grid-row:5;}
+  }
+}
+
+/* Desktop: retain the original 1440x1048 composition across the available width.
+   The supplied reduced reference has that aspect ratio; do not treat 552x402 as a viewport.
+   Typography remains the desktop tokens, rather than inheriting mobile's 18px floor. */
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) {--color-bg-container:#f0ebe0;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .canvas-viewport-wrapper {width:100%;zoom:1;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .canvas-frame {width:100%;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .phase-scroll-track {height:calc(var(--ps-frame-height) + var(--sticky-travel,420px))!important;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-box {left:calc(232px * var(--ps-desktop-x-scale));top:calc(153px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-en,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-cn {font-size:calc(24px * min(1,var(--ps-desktop-x-scale)));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-content-box {left:calc(232px * var(--ps-desktop-x-scale));top:calc(231px * var(--ps-desktop-y-scale));width:calc(450px * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-quote {position:absolute;top:0;left:0;white-space:nowrap;font-size:calc(var(--quote-font-size,28px) * min(1,var(--ps-desktop-x-scale)));letter-spacing:calc(2.8px * min(1,var(--ps-desktop-x-scale)));padding-left:calc(22px * min(1,var(--ps-desktop-x-scale)));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-paragraph {font-size:calc(16px * min(1,var(--ps-desktop-x-scale)));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-quote + .default-paragraph {margin-top:calc(295px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-visual-box {left:calc(var(--default-rock-x) * var(--ps-desktop-x-scale));top:calc(var(--default-rock-y) * var(--ps-desktop-y-scale));width:calc(var(--default-rock-w) * var(--ps-desktop-x-scale));height:calc(var(--default-rock-h) * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #canvasFrame .default-visual-box {left:calc(var(--p1-rock-x) * var(--ps-desktop-x-scale));top:calc(var(--p1-rock-y) * var(--ps-desktop-y-scale));width:calc(var(--p1-rock-w) * var(--ps-desktop-x-scale));height:calc(var(--p1-rock-h) * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase02 .default-visual-box {left:calc(var(--p2-rock-x) * var(--ps-desktop-x-scale));top:calc(var(--p2-rock-y) * var(--ps-desktop-y-scale));width:calc(var(--p2-rock-w) * var(--ps-desktop-x-scale));height:calc(var(--p2-rock-h) * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase03 .default-visual-box {left:calc(var(--p3-rock-x) * var(--ps-desktop-x-scale));top:calc(var(--p3-rock-y) * var(--ps-desktop-y-scale));width:calc(var(--p3-rock-w) * var(--ps-desktop-x-scale));height:calc(var(--p3-rock-h) * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase04 .default-visual-box {left:calc(var(--p4-rock-x) * var(--ps-desktop-x-scale));top:calc(var(--p4-rock-y) * var(--ps-desktop-y-scale));width:calc(var(--p4-rock-w) * var(--ps-desktop-x-scale));height:calc(var(--p4-rock-h) * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .bg-default-curve {width:100%;min-width:100%;height:calc(761px * var(--ps-desktop-y-scale));min-height:0;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .phase-vertical-tag {left:calc(58px * var(--ps-desktop-x-scale));top:calc(173px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .phase-vertical-tag.is-default {top:calc(58px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .global-stage-nav {left:calc(54px * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine1 {top:calc(656px * var(--ps-desktop-y-scale));height:calc(392px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine2,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine3 {height:var(--ps-frame-height);}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine4 {height:calc(656px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .center-line-diamond-mid {top:calc(656px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .page-content-box {left:calc(232px * var(--ps-desktop-x-scale));top:calc(235px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .card-meta-header,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .cards-stack-container,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .card-caption-desc {left:calc(785px * var(--ps-desktop-x-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .cards-stack-container {top:calc(235px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .card-meta-header {top:calc(var(--card-meta-top) * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .card-caption-desc {top:calc(666px * var(--ps-desktop-y-scale));}
+
+/* Final desktop alignment: the live left half owns text, not a centered 1440px box. */
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-content-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .page-content-box {left:max(92px,calc(25% - 300px));width:min(600px,calc(50% - 184px));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-box {height:63px;display:block;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-en {position:absolute;top:0;left:0;font-family:"Bacasime Antique",serif;font-size:24px;line-height:normal;letter-spacing:3.36px;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-cn {position:absolute;top:20px;left:0;font-family:'SweiSpringCJKtc',serif;font-size:24px;font-weight:600;line-height:1.8;letter-spacing:20.64px;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-quote {font-family:"Noto Serif TC",serif;font-size:28px;font-weight:600;line-height:1.8;letter-spacing:2.8px;padding-left:22.333px;white-space:normal;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-paragraph {font-family:"Noto Serif TC",serif;font-size:16px;font-weight:500;line-height:1.6;letter-spacing:.48px;margin-bottom:37px;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-quote + .default-paragraph {margin-top:calc(298px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .phase-vertical-tag {writing-mode:vertical-rl;text-orientation:mixed;transform:none;transform-origin:initial;width:24px;height:max-content;overflow:visible;font-size:24px;line-height:normal;letter-spacing:3.36px;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .phase-vertical-tag.is-default {font-family:"Bacasime Antique",serif;top:calc(63.46px * var(--ps-desktop-y-scale));}
+/* Preserve the known-good page-image region from the centered desktop implementation. */
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .cards-stack-container {left:calc(50% + 65px);top:235px;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .card-meta-header {left:calc(50% + 65px);top:var(--card-meta-top);}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .card-caption-desc {left:calc(50% + 65px);top:666px;}
+/* Home visuals alone: retain original aspect, center in the right half, gently enlarge/lower. */
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #canvasFrame .default-visual-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase02 .default-visual-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase03 .default-visual-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase04 .default-visual-box {width:min(840px,calc(50% - 64px));height:auto;aspect-ratio:580/530;left:calc(75% - min(840px,calc(50% - 64px))/2);top:calc(240px * var(--ps-desktop-y-scale));}
+@media (min-width:1280px) {#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-quote {white-space:nowrap;}}
+/* The home image is 14% larger than the original 580px slot, centered 24px below mid-height. */
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #canvasFrame .default-visual-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase02 .default-visual-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase03 .default-visual-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #sectionPhase04 .default-visual-box {width:var(--ps-home-width);height:var(--ps-home-height);left:calc(75% - var(--ps-home-width)/2);top:calc((var(--ps-frame-height) - var(--ps-home-height))/2 + 24px);}
+
+/* Reserve the measured left navigation/rail strip before centering the text region.
+   This remains clear even when long paragraphs reach the navigation's vertical range. */
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .section-title-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-content-box,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .page-content-box {left:var(--ps-left-text-x,max(92px,calc(25% - 300px)));width:var(--ps-left-text-width,min(600px,calc(50% - 184px)));}
+/* The original mobile stair navigation remains at bottom-left, outside the reading column. */
+#ps-root.viewport-mobile .canvas-frame {padding-left:max(clamp(24px,7vw,46px),calc(env(safe-area-inset-left,0px) + 40px));}
+
+/* Restore the original pinned home -> reading (mobile) -> card story. */
+#ps-root :is(.default-quote,.default-paragraph,.sentence-track,.card-caption-desc) {text-wrap:pretty;word-break:normal;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-quote {white-space:normal;}
+#ps-root :is(#trackPhase01,#trackPhase02,#trackPhase03,#trackPhase04) {height:calc((var(--ps-view-height) + var(--ps-page-distance))/var(--ps-scale,1))!important;}
+#ps-root .canvas-viewport-wrapper .phase-scroll-track {margin-top:0!important;}
+#ps-root .canvas-frame.sticky-frame {position:sticky!important;top:var(--ps-sticky-top)!important;height:calc(var(--ps-view-height)/var(--ps-scale,1))!important;min-height:0!important;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;overscroll-behavior-y:auto;}
+#ps-root .canvas-frame::-webkit-scrollbar {display:none;}
+#ps-root .snap-anchor-page {top:calc(var(--ps-page-distance)/var(--ps-scale,1));}
+#ps-root.viewport-mobile .snap-anchor-intro {display:block!important;top:calc(var(--ps-page-distance)/2);}
+#ps-root.viewport-mobile .snap-anchor-page {display:block!important;}
+html.ps-snap {scroll-snap-type:y mandatory;scroll-padding-top:var(--ps-nav-h,0px);}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-paragraphs {margin-top:calc(298px * var(--ps-desktop-y-scale));}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .default-paragraphs .default-paragraph:first-child {margin-top:0;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .canvas-frame .default-visual-box {left:var(--ps-home-scene-x)!important;top:var(--ps-home-scene-y)!important;width:var(--ps-home-scene-width)!important;height:var(--ps-home-scene-height)!important;}
+#ps-root.viewport-tablet .canvas-frame .default-visual-box {left:var(--ps-tablet-home-x)!important;top:var(--ps-tablet-home-y)!important;width:var(--ps-tablet-home-width)!important;height:var(--ps-tablet-home-height)!important;}
+#ps-root.viewport-tablet .default-content-box {top:var(--ps-tablet-copy-y);}
+#ps-root.viewport-tablet .default-quote {top:calc(179px - var(--ps-tablet-copy-y));}
+#ps-root.viewport-mobile .canvas-frame > * {flex-shrink:0;}
+#ps-root.viewport-mobile .canvas-frame:not([data-ps-state="page"]) .default-content-box {display:contents!important;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] .default-content-box {display:none!important;}
+#ps-root.viewport-mobile .default-quote {position:relative!important;left:auto!important;top:auto!important;order:1;width:100%;display:block!important;transform:none!important;margin:0;}
+#ps-root.viewport-mobile .default-paragraphs {position:relative;order:3;width:100%;margin-top:32.4px;}
+#ps-root.viewport-mobile .default-paragraphs .default-paragraph:first-child {margin-top:0;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="default"] .default-paragraphs {display:none;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="intro"] .default-paragraphs {display:block;}
+#ps-root.viewport-mobile .canvas-frame .default-visual-box {width:var(--ps-mobile-home-width)!important;height:var(--ps-mobile-home-height)!important;max-width:none;aspect-ratio:auto;align-self:center;left:var(--ps-mobile-home-shift)!important;top:auto!important;order:2;margin-top:calc(var(--ps-mobile-home-gap) - 24px);}
+#ps-root.viewport-mobile .canvas-frame .default-visual-box img {width:100%;height:100%;object-fit:contain;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine1 {top:calc(var(--ps-view-height)*656/1048);height:calc(var(--ps-view-height)*392/1048);}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine2,
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine3 {height:var(--ps-view-height);}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) #centerConnectingLine4 {height:calc(var(--ps-view-height)*656/1048);}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .center-line-diamond-mid {top:calc(var(--ps-view-height)*656/1048);}
+@media (max-height:500px) {@container ps-phase (min-width:760px){
+  #ps-root.viewport-mobile .canvas-frame .default-quote {grid-column:1;grid-row:3;}
+  #ps-root.viewport-mobile .canvas-frame .default-paragraphs {grid-column:1;grid-row:4;margin-top:32.4px;}
+  #ps-root.viewport-mobile .canvas-frame .default-visual-box {grid-column:2;grid-row:1/4;margin-top:0;}
+}}
+@media (prefers-reduced-motion:reduce){#ps-root * {transition-duration:.01ms!important;}}
+/* Outgoing states are painted by the transition snapshot, avoiding duplicate fades. */
+#ps-root .default-content-box.is-hidden,#ps-root .default-visual-box.is-hidden {visibility:hidden;}
+#ps-root.viewport-mobile .canvas-frame .default-visual-box {justify-self:center;}
+
+#ps-root .ps-story-snapshot,#ps-root .ps-story-snapshot * {pointer-events:none!important;}
+
+/* Tablet composition is capped at its design width, including narrow desktop windows. */
+#ps-root.viewport-tablet .canvas-viewport-wrapper {width:1024px;margin-inline:auto;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] .reel-nav-buttons {position:absolute!important;left:var(--ps-mobile-controls-x)!important;top:var(--ps-mobile-controls-y)!important;width:var(--ps-mobile-controls-width)!important;height:44px!important;margin:0!important;z-index:25;pointer-events:none;}
+#ps-root.viewport-mobile .reel-nav-buttons .figma-styled-btn {pointer-events:auto;}
+#ps-root.viewport-mobile .reel-nav-buttons .figma-styled-btn svg {width:44px;height:44px;transform:scale(1.6)!important;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] .reel-page-indicator {position:absolute!important;top:var(--ps-mobile-number-y)!important;right:24px!important;left:auto!important;width:auto!important;margin:0!important;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] .card-caption-desc {margin-bottom:80px;}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] :is(.reel-nav-buttons,.reel-page-indicator) {grid-area:auto!important;}
+
+/* Keep the mobile title above imagery and reserve the navigation strip. */
+#ps-root.viewport-mobile .section-title-box {z-index:45!important;}
+#ps-root.viewport-mobile .phone-stage-nav {left:max(16px,calc(env(safe-area-inset-left,0px) + 16px));}
+#ps-root.viewport-mobile .canvas-frame {padding-left:max(clamp(24px,7vw,46px),calc(env(safe-area-inset-left,0px) + 48px));}
+
+#ps-root.viewport-mobile .canvas-frame .side-rock-icon {display:none!important;}
+@media (max-height:500px){@container ps-phase (min-width:760px){#ps-root.viewport-mobile .canvas-frame .side-rock-icon {display:block!important;}}}
+
+
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .reel-nav-buttons {top:auto!important;bottom:50px!important;}
+#ps-root.viewport-mobile .sentence-tracks-wrapper {overflow:hidden;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .side-rock-icon {width:146px;top:30px;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .main-text-stage {mask-image:linear-gradient(to bottom,#000 0%,#000 var(--mask-solid-bottom,250px),transparent calc(var(--mask-fade-bottom,430px) - var(--upcoming-font-size,16px) * var(--upcoming-line-height,1.6)));-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 var(--mask-solid-bottom,250px),transparent calc(var(--mask-fade-bottom,430px) - var(--upcoming-font-size,16px) * var(--upcoming-line-height,1.6)));}
+#ps-root.viewport-tablet .main-text-stage {mask-image:linear-gradient(to bottom,#000 0%,#000 var(--tab-mask-solid-bottom,230px),transparent calc(var(--tab-mask-fade-bottom,380px) - max(15px,calc(12.5px / var(--ps-scale,1))) * 1.7));-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 var(--tab-mask-solid-bottom,230px),transparent calc(var(--tab-mask-fade-bottom,380px) - max(15px,calc(12.5px / var(--ps-scale,1))) * 1.7));}
+#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] .side-rock-icon {display:block!important;position:absolute!important;left:calc(100% - 96px)!important;top:24px!important;width:64px!important;opacity:1!important;transform:rotate(-12.89deg)!important;z-index:10;}
+@media (max-height:500px){@container ps-phase (min-width:760px){#ps-root.viewport-mobile .canvas-frame[data-ps-state="page"] .side-rock-icon {position:relative!important;left:auto!important;top:auto!important;width:68px!important;transform:none!important;}}}
+/* Quote foreground and desktop number/button spacing, independent of viewport height. */
+#ps-root.viewport-mobile .canvas-frame .default-quote {z-index:50!important;}
+#ps-root.viewport-mobile .canvas-frame .page-content-box {z-index:50!important;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .reel-page-indicator {top:auto!important;bottom:calc(50px + var(--btn-size,50px) + 15px)!important;z-index:25;}
+#ps-root:not(.viewport-mobile):not(.viewport-tablet) .reel-nav-buttons {z-index:25;}
+#ps-root.viewport-tablet .reel-page-indicator {top:var(--ps-tablet-number-y,1188px);}
