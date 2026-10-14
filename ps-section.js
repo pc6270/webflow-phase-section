@@ -21,10 +21,10 @@
     // ==========================================
     // B. 各 Phase 首頁主圖與原石小圖 (共 10 項，已轉為 .avif)
     // ==========================================
-    "phase01-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1381b4d5b0c8164f2a2c_phase01-img.avif",
-    "phase02-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13808cefba012e6ea6fb_phase02-img.avif",
-    "phase03-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1381cdd337debbb7b147_phase03-img.avif",
-    "phase04-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380b4d5b0c8164f2a11_phase04-img.avif",
+    "phase01-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1dfb028eb2bb522520_phase01-img.avif",
+    "phase02-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1d7e072b14c23c561e_phase02-img.avif",
+    "phase03-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1d838bc7acbce4c3e6_phase03-img.avif",
+    "phase04-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1dc4067cdc8365e206_phase04-img.avif",
     "rock01.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13804b19aa9175fe8798_rock01.avif",
     "rock02.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138038881bba415dfce1_rock02.avif",
     "rock03.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380cdd337debbb7b11a_rock03.avif",
