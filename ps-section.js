@@ -6,6 +6,7 @@
   'use strict';
   const root = document.getElementById('ps-root');
   if (!root) return;
+  if (window.matchMedia('(max-width:767px)').matches) return;
 
   const ASSET_BASE = root.getAttribute('data-asset-base') || '';
   const ASSETS = {
