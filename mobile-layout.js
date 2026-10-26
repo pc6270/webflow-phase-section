@@ -193,8 +193,8 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  // Measure the reserved original heading; hidden elements still keep their layout.
  const opening=phase.querySelector('.tablet-opening'),heading=opening.querySelector('.hero-title'),r=heading.getBoundingClientRect(),p=opening.getBoundingClientRect();
  const heroQuote=opening.querySelector('blockquote');const q=heroQuote.getBoundingClientRect();
- overlay.style.left=r.left+'px';overlay.style.width=r.width+'px';overlay.style.top=(header+r.top-p.top)+'px';box.style.top=(q.top-r.top)+'px';
- const bounds=root.getBoundingClientRect();overlay.style.display=bounds.top<innerHeight*.4&&bounds.bottom>header?'block':'none';
+ overlay.style.left=r.left+'px';overlay.style.width=r.width+'px';const entryTop=anchors[0].getBoundingClientRect().top;const lastPanel=phases.at(-1).querySelector('.card');const exitOffset=Math.min(0,lastPanel.getBoundingClientRect().top-header);const overlayTop=Math.max(header,entryTop)+r.top-p.top+exitOffset;overlay.style.top=overlayTop+'px';const nav=document.querySelector('#phase-mobile-nav');if(nav)nav.style.translate='0 '+exitOffset+'px';root.querySelectorAll('.fixed-tablet-rail,.fixed-tablet-rock').forEach(el=>el.style.translate='0 '+exitOffset+'px');box.style.top=(q.top-r.top)+'px';
+ const bounds=root.getBoundingClientRect();overlay.style.display=bounds.top<innerHeight&&bounds.bottom>header?'block':'none';
  if(selected!==Math.floor(panel/2)){title.querySelector('.en').textContent=heading.querySelector('.en').textContent;title.querySelector('h2').textContent=heading.querySelector('h1').textContent;selected=Math.floor(panel/2)}
  const source=detail?phase.querySelector('.card>blockquote'):heroQuote;
  const html=source.innerHTML,text=source.textContent.trim();
