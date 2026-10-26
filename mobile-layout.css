@@ -144,6 +144,11 @@
  #phase-mobile .card{min-height:calc(100dvh - var(--site-header-height,0px))}
  #phase-mobile .tablet-opening .scene{width:56%;margin-left:16%;margin-right:0}
 }
+/* Clip off-canvas artwork without creating a nested vertical scroll container. */
+@media(min-width:768px) and (max-width:1199px){
+ html.phase-tablet-pager,html.phase-tablet-pager body{overflow-x:clip;max-width:100%}
+ #phase-mobile{overflow-x:clip!important;overflow-y:visible!important;max-width:100%}
+}
 
 /* Shared chapter heading and quote, isolated to the paging experiment. */
 @media(min-width:768px) and (max-width:1199px){
