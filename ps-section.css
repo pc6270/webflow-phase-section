@@ -2129,3 +2129,6 @@ html.ps-snap {scroll-snap-type:y mandatory;scroll-padding-top:var(--ps-nav-h,0px
 #ps-root:not(.viewport-mobile):not(.viewport-tablet) .reel-page-indicator {top:auto!important;bottom:calc(50px + var(--btn-size,50px) + 15px)!important;z-index:25;}
 #ps-root:not(.viewport-mobile):not(.viewport-tablet) .reel-nav-buttons {z-index:25;}
 #ps-root.viewport-tablet .reel-page-indicator {top:var(--ps-tablet-number-y,1188px);}
+
+/* English heading weight: one step above the desktop baseline. */
+@media(min-width:1200px){#ps-root .section-title-en,#ps-root .card-cat-en{font-weight:500}#ps-root .section-title-en{font-size:20px}#ps-root .card-cat-en{font-size:calc(var(--card-title-en-size) - 4px)}}
