@@ -138,6 +138,12 @@
  #phase-mobile #phase-mobile-03 .tablet-opening .scene{margin-bottom:-16px}
  #phase-mobile #phase-mobile-04 .tablet-opening .scene{margin-bottom:30px}
 }
+/* Safari toolbar changes must not reveal the following panel below the current one. */
+@media(min-width:768px) and (max-width:1199px){
+ #phase-mobile .tablet-opening{height:calc(100dvh - var(--site-header-height,0px))}
+ #phase-mobile .card{min-height:calc(100dvh - var(--site-header-height,0px))}
+ #phase-mobile .tablet-opening .scene{width:56%;margin-left:16%;margin-right:0}
+}
 
 /* Shared chapter heading and quote, isolated to the paging experiment. */
 @media(min-width:768px) and (max-width:1199px){
