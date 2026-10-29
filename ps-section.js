@@ -1602,6 +1602,7 @@ const phase01Queue = [
     // - JS 只負責「目前停在哪個錨點」→ 套用對應狀態，不再攔截 wheel / touch
     // =========================================================================
     let programmaticScroll = false;
+    let desktopPagingTarget=null;
 
     let programmaticTimer = null;
 
@@ -1689,7 +1690,7 @@ const phase01Queue = [
     // 依「目前停靠的錨點」套用狀態 (冪等：狀態已正確則不動作)
     let applyRetryTimer = null;
     function applyAnchorState() {
-      if(programmaticScroll||document.documentElement.classList.contains('snap-disabled'))return;
+      if(desktopPagingTarget||programmaticScroll||document.documentElement.classList.contains('snap-disabled'))return;
       const sectionBounds=root.getBoundingClientRect();if(sectionBounds.top>navHeight+2||sectionBounds.bottom<=navHeight+2)return;
 
       if(Date.now()<lastManualStateTime){clearTimeout(applyRetryTimer);applyRetryTimer=setTimeout(applyAnchorState,lastManualStateTime-Date.now()+20);return;}
@@ -3613,20 +3614,51 @@ const phase01Queue = [
     }
 
     function setupDesktopPaging() {
-      let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY;
+      let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       const list=()=>getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
       const positions=()=>list().map(anchorScrollTop);
       const nearest=p=>p.reduce((b,y,i)=>Math.abs(y-scrollY)<Math.abs(p[b]-scrollY)?i:b,0);
       const eligible=(p,d)=>!document.documentElement.classList.contains('snap-disabled')&&p.length && ((scrollY>=p[0]-2&&scrollY<=p[p.length-1]+2)||(d<0&&scrollY>p[p.length-1]&&scrollY<=p[p.length-1]+innerHeight*.8));
-      function go(i){const a=list()[i];if(!a)return;moving=true;
+      function go(i){
+        const a=list()[i];if(!a)return;moving=true;
         const phase=Number(a.dataset.phase),target=a.dataset.kind==='page'?selectedPages[phase-1]:'default';
-        const current=phaseState(phase);
-        if((typeof target==='number'&&typeof current!=='number')||(target==='default'&&typeof current==='number')){
-          [setState,setPhase2State,setPhase3State,setPhase4State][phase-1](target);
-        }
-        scrollToAnchor(a.dataset.phase,a.dataset.kind,matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');const start=performance.now();function done(){if((performance.now()-start>250&&Math.abs(scrollY-anchorScrollTop(a))<3)||performance.now()-start>1700){moving=false;return}requestAnimationFrame(done)}requestAnimationFrame(done)}
+        const origin=list()[nearest(positions())],samePhase=origin?.dataset.phase===a.dataset.phase;
+        desktopPagingTarget=a;const start=performance.now();
+        function commit(){
+          const current=phaseState(phase);
+          if((typeof target==='number'&&typeof current!=='number')||(target==='default'&&typeof current==='number')){
+            transitionOverlays.forEach(el=>el.remove());transitionOverlays.clear();
+            [setState,setPhase2State,setPhase3State,setPhase4State][phase-1](target);
+          }
+          const committed=typeof target==='number'?typeof phaseState(phase)==='number':typeof phaseState(phase)!=='number';
+          if(!committed&&performance.now()-start<1800){requestAnimationFrame(commit);return;}
+          scrollToAnchor(a.dataset.phase,a.dataset.kind,samePhase||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
+          function done(){
+            if((performance.now()-start>120&&Math.abs(scrollY-anchorScrollTop(a))<3)||performance.now()-start>2000){
+              moving=false;desktopPagingTarget=null;
+              if(pendingDirection){const d=pendingDirection;pendingDirection=0;step(d);}return;
+            }requestAnimationFrame(done);
+          }requestAnimationFrame(done);
+        }commit();
+      }
       function step(d){const p=positions();if(!eligible(p,d))return false;if(scrollY<p[0]-2&&d>0){go(0);return true}if(scrollY>p[p.length-1]+2&&d<0){go(p.length-1);return true}const i=nearest(p)+d;if(i<0||i>=p.length)return false;go(i);return true}
-      addEventListener('wheel',e=>{if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0;reading=false},240);if(moving||(used&&!reading)){if(e.cancelable)e.preventDefault();return;}const frame=e.target.closest?.('.canvas-frame');if(canReadDesktopFrame(frame,d)){used=true;reading=true;return;}if(used||moving){if(e.cancelable)e.preventDefault();return}if((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0))return;if(e.cancelable)e.preventDefault();sum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);if(Math.abs(sum)>=12){used=step(Math.sign(sum));sum=0}},{passive:false,capture:true});
+      addEventListener('wheel',e=>{
+        if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;
+        const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;
+        const now=performance.now(),fresh=now-lastWheelAt>180;lastWheelAt=now;
+        if(fresh){used=false;sum=0;reading=false;}
+        clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0;reading=false},180);
+        if(moving){if(fresh)pendingDirection=d;if(e.cancelable)e.preventDefault();return;}
+        if(used&&!reading){if(e.cancelable)e.preventDefault();return;}
+        const frame=e.target.closest?.('.canvas-frame');
+        if(canReadDesktopFrame(frame,d)){used=true;reading=true;return;}
+        if(used){if(e.cancelable)e.preventDefault();return;}
+        if((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0))return;
+        if(e.cancelable)e.preventDefault();
+        if(sum&&Math.sign(sum)!==d)sum=0;
+        sum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+        if(Math.abs(sum)>=32){used=step(d);sum=0;}
+      },{passive:false,capture:true});
       addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('button,a,input,select,textarea,[contenteditable="true"]')?{x:e.touches[0].clientX,y:e.touches[0].clientY,used:false}:null},{passive:true});
       addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);const frame=e.target.closest?.('.canvas-frame');if(canReadDesktopFrame(frame,d)){touch.reading=true;return;}if(touch.reading){if(e.cancelable)e.preventDefault();return;}if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;if(!touch.used&&!moving&&((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(!touch.used&&!moving&&Math.abs(dy)>=55)touch.used=step(d)},{passive:false,capture:true});
       addEventListener('touchend',()=>touch=null,{passive:true});addEventListener('touchcancel',()=>touch=null,{passive:true});
