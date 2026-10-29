@@ -133,6 +133,7 @@ addEventListener('resize',()=>{if(innerWidth===layoutWidth)return;layoutWidth=in
 addEventListener('orientationchange',()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(update)});
 document.fonts.ready.then(update);update();active();
 })();
+<<<<<<< HEAD
 
 
 
@@ -153,6 +154,28 @@ document.fonts.ready.then(update);update();active();
 
 
 
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
 
 if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
 (()=>{const root=document.querySelector('#phase-mobile');document.documentElement.classList.add('phase-tablet-pager');function size(){const header=parseFloat(getComputedStyle(root).getPropertyValue('--site-header-height'))||0;document.documentElement.style.setProperty('--phase-pager-header',header+'px');for(const panel of root.querySelectorAll('.tablet-opening,.card'))panel.style.setProperty('--stack-top',Math.min(header,innerHeight-panel.getBoundingClientRect().height)+'px')}document.fonts.ready.then(()=>{size();const observer=new ResizeObserver(size);root.querySelectorAll('.tablet-opening,.card').forEach(p=>observer.observe(p))});addEventListener('resize',size);size()})();
@@ -167,7 +190,11 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  function go(index){const p=positions();if(index<0||index>=p.length)return;busy=true;window.scrollTo({top:p[index],behavior:reduced?'instant':'smooth'});const started=performance.now();function finish(){if((performance.now()-started>250&&Math.abs(scrollY-p[index])<2)||performance.now()-started>1600){busy=false;return}requestAnimationFrame(finish)}requestAnimationFrame(finish)}
  function inside(){const p=positions();return scrollY>=p[0]-2&&scrollY<=p.at(-1)+Math.max(0,panels.at(-1).offsetHeight-(innerHeight-header()))+2}
+<<<<<<< HEAD
  function eligible(dir){if(inside())return true;const p=positions(),reach=innerHeight*.8,lastEnd=p.at(-1)+Math.max(0,panels.at(-1).offsetHeight-(innerHeight-header()));return dir<0&&scrollY>lastEnd&&scrollY<=lastEnd+reach}
+=======
+ function eligible(dir){if(inside())return true;const p=positions(),reach=innerHeight*.8,lastEnd=p.at(-1)+Math.max(0,panels.at(-1).offsetHeight-(innerHeight-header()));return (dir>0&&scrollY<p[0]&&scrollY>=p[0]-reach)||(dir<0&&scrollY>lastEnd&&scrollY<=lastEnd+reach)}
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
  function step(dir){const p=positions(),i=nearest(),bottom=p[i]+Math.max(0,panels[i].offsetHeight-(innerHeight-header()));
  // A tall page is read to its edge before the next gesture changes pages.
  if(dir>0&&scrollY<bottom-2){busy=true;scrollTo({top:bottom,behavior:reduced?'instant':'smooth'});setTimeout(()=>busy=false,700);return true}
@@ -183,7 +210,11 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  addEventListener('keydown',e=>{if(interactive(e.target))return;const dir=['ArrowDown','PageDown',' '].includes(e.key)?1:['ArrowUp','PageUp'].includes(e.key)?-1:0;if(!dir||!eligible(dir))return;if(busy||e.repeat){e.preventDefault();return}if(step(dir))e.preventDefault()});
  // Catch native momentum that began outside the component before a new touch can be captured.
  let previousScroll=scrollY;
+<<<<<<< HEAD
  addEventListener('scroll',()=>{const now=scrollY,p=positions(),first=p[0],last=p.at(-1)+Math.max(0,panels.at(-1).offsetHeight-(innerHeight-header()));const enteringTop=previousScroll<first-2&&now>=first-2&&now>previousScroll;const enteringBottom=previousScroll>last+2&&now<=last+2&&now<previousScroll;previousScroll=now;if(busy||(!enteringTop&&!enteringBottom))return;if(gesture){gesture.locked=true;gesture.used=true}wheelUsed=true;clearTimeout(wheelTimer);wheelTimer=setTimeout(()=>{wheelUsed=false;wheelSum=0},enteringTop?120:300);const index=enteringTop?0:panels.length-1;window.scrollTo({top:p[index],behavior:'instant'});previousScroll=p[index];if(!enteringTop)go(index);},{passive:true});
+=======
+ addEventListener('scroll',()=>{const now=scrollY,p=positions(),first=p[0],last=p.at(-1)+Math.max(0,panels.at(-1).offsetHeight-(innerHeight-header()));const enteringTop=previousScroll<first-2&&now>=first-2&&now>previousScroll;const enteringBottom=previousScroll>last+2&&now<=last+2&&now<previousScroll;previousScroll=now;if(busy||(!enteringTop&&!enteringBottom))return;if(gesture){gesture.locked=true;gesture.used=true}wheelUsed=true;clearTimeout(wheelTimer);wheelTimer=setTimeout(()=>{wheelUsed=false;wheelSum=0},300);const index=enteringTop?0:panels.length-1;window.scrollTo({top:p[index],behavior:'instant'});previousScroll=p[index];go(index);},{passive:true});
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
 
 })();
 (()=>{
@@ -211,6 +242,7 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(update)}
  root.classList.add('shared-chapter');const observer=new MutationObserver(schedule);phases.forEach(p=>observer.observe(p.querySelector('.card>blockquote'),{subtree:true,childList:true,characterData:true}));addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);document.fonts.ready.then(schedule);schedule();
+<<<<<<< HEAD
 })();
 
 }
@@ -278,3 +310,8 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
 })();
 
 
+=======
+})();
+
+}
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab

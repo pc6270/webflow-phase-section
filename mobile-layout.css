@@ -171,9 +171,12 @@
 }
 
 @media(min-width:768px) and (max-width:1199px){html.phase-tablet-pager{scroll-snap-type:none!important;scroll-behavior:auto}}
+<<<<<<< HEAD
 
 /* Tablet opening copy always paints above decorative waves. */
 @media(min-width:768px) and (max-width:1199px){
  #phase-mobile .tablet-opening>.intro{position:relative;z-index:3;isolation:isolate;}
  #phase-mobile .tablet-opening .curve{z-index:0;pointer-events:none;}
 }
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab

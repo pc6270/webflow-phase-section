@@ -106,6 +106,7 @@
   function updateNavHeight() {
     const selector = root.getAttribute('data-nav');
     const el = selector && !/^\d+(\.\d+)?$/.test(selector) ? document.querySelector(selector) : null;
+<<<<<<< HEAD
     // Use the website's shared header height where provided; a numeric data-nav
     // remains an explicit override (the standalone preview uses zero).
     const sharedHeader = getComputedStyle(root).getPropertyValue('--site-header-height').trim();
@@ -116,6 +117,10 @@
       root.appendChild(sharedProbe); navHeight=Math.max(0,sharedProbe.getBoundingClientRect().height); sharedProbe.remove();
     }
     else if (el) navHeight = Math.max(0, el.getBoundingClientRect().height);
+=======
+    if (el) navHeight = Math.max(0, el.getBoundingClientRect().height);
+    else if (selector && /^\d+(\.\d+)?$/.test(selector)) navHeight = Number(selector);
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     else {
       const probe = document.createElement('div');
       probe.style.cssText = 'position:absolute;visibility:hidden;width:0;height:var(--header-h,64px);pointer-events:none';
@@ -144,6 +149,7 @@
     root.classList.toggle('viewport-tablet',tablet);
     document.body.classList.remove('viewport-mobile','viewport-tablet');
     root.style.setProperty('--ps-scale',String(scale));
+<<<<<<< HEAD
     // Desktop canvas follows the dynamic viewport, with a 760px minimum content height.
     let dvhProbe=root.querySelector('.ps-dvh-probe');
     if(!dvhProbe){dvhProbe=document.createElement('div');dvhProbe.className='ps-dvh-probe';dvhProbe.style.cssText='position:fixed;left:0;top:0;width:0;height:100vh;height:100dvh;visibility:hidden;pointer-events:none';root.append(dvhProbe);}
@@ -155,14 +161,22 @@
     root.style.setProperty('--card-sub-x',(desktopCardWidth+55)+'px');
     root.style.setProperty('--ps-desktop-x-scale',String(width/1440));
     root.style.setProperty('--ps-desktop-y-scale',String(760/1048));
+=======
+    const desktopHeight=Math.max(1048,window.innerHeight-navHeight);
+    root.style.setProperty('--ps-desktop-x-scale',String(width/1440));
+    root.style.setProperty('--ps-desktop-y-scale',String(desktopHeight/1048));
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     const homeWidth=Math.min(660,width/2-64);
     root.style.setProperty('--ps-home-width',homeWidth+'px');
     root.style.setProperty('--ps-home-height',(homeWidth*530/580)+'px');
     root.style.setProperty('--ps-frame-height',(tablet?1366:desktopHeight)+'px');
     root.style.setProperty('--ps-sticky-top',(navHeight/scale)+'px');
     root.style.setProperty('--ps-view-height',Math.max(240,(window.visualViewport?.height||window.innerHeight)-navHeight)+'px');
+<<<<<<< HEAD
     root.classList.toggle('desktop-short',width>=1200&&desktopHeight>(window.visualViewport?.height||innerHeight)-navHeight+1);
     if(width>=1200&&!root.classList.contains('desktop-short'))frames.forEach(frame=>{frame.scrollTop=0;});
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     root.style.setProperty('--ps-page-distance',(mobile?300:tablet?380:420)+'px');
     frames.forEach((frame,i)=>setHomeGeometry(frame,i+1));
     requestAnimationFrame(()=>frames.forEach(positionMobileControls));
@@ -178,7 +192,10 @@
       if(reference)window.scrollBy({top:reference.parentElement.getBoundingClientRect().top-oldTop,behavior:'instant'});
     }
     syncGlobalFixedComponentsPosition();
+<<<<<<< HEAD
     refreshDesktopStories();
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     updateCenterLineScroll();
     handleWindowScroll();
   }
@@ -207,6 +224,7 @@
     const width=root.getBoundingClientRect().width,scale=parseFloat(root.style.getPropertyValue('--ps-scale'))||1;
     const mobile=root.classList.contains('viewport-mobile'),tablet=root.classList.contains('viewport-tablet');
     const scene=HOME_SCENES.desktop[phase-1],tabletScene=HOME_SCENES.tablet[phase-1];
+<<<<<<< HEAD
     // 100dvh is measured directly so image size follows the visible viewport.
     let dvhProbe=root.querySelector('.ps-dvh-probe');
     if(!dvhProbe){dvhProbe=document.createElement('div');dvhProbe.className='ps-dvh-probe';dvhProbe.style.cssText='position:fixed;left:0;top:0;width:0;height:100vh;height:100dvh;visibility:hidden;pointer-events:none';root.append(dvhProbe);}
@@ -214,6 +232,10 @@
     const originalWidth=Math.min(660*scene.w/544.48,width/2-64);
     const dw=mobile||tablet?originalWidth:originalWidth*.9*Math.min(1,Math.min(760,availableHeight)/1048),dh=dw*scene.h/scene.w;
     const baseHeight=mobile||tablet?(parseFloat(root.style.getPropertyValue('--ps-frame-height'))||1048):760;
+=======
+    const dw=Math.min(660*scene.w/544.48,width/2-64),dh=dw*scene.h/scene.w;
+    const baseHeight=parseFloat(root.style.getPropertyValue('--ps-frame-height'))||1048;
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     frame.style.setProperty('--ps-home-scene-width',dw+'px');frame.style.setProperty('--ps-home-scene-height',dh+'px');
     frame.style.setProperty('--ps-home-scene-x',(width*(scene.x+scene.w/2)/1440-dw/2)+'px');
     frame.style.setProperty('--ps-home-scene-y',(baseHeight*(scene.y+scene.h/2)/scene.fh-dh/2)+'px');
@@ -234,6 +256,7 @@
       frame.style.setProperty('--ps-mobile-home-gap',Math.max(24,s.y-219)+'px');
     }
   }
+<<<<<<< HEAD
   function updateShortDesktopFrame(frame){
     if(!root.classList.contains('desktop-short'))return;
     const b=frame.getBoundingClientRect(),offset=frame.scrollTop;
@@ -252,6 +275,9 @@
   function positionMobileControls(frame){
     if(window.innerWidth>=1200){const number=frame.querySelector('.reel-page-indicator');if(number)frame.style.setProperty('--ps-desktop-number-height',number.offsetHeight+'px');}
     updateShortDesktopFrame(frame);
+=======
+  function positionMobileControls(frame){
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     if(root.classList.contains('viewport-tablet')&&frame.dataset.psState==='page'){const nav=frame.querySelector('.reel-nav-buttons'),number=frame.querySelector('.reel-page-indicator');const scale=parseFloat(root.style.getPropertyValue('--ps-scale'))||1;frame.style.setProperty('--ps-tablet-number-y',(nav.offsetTop-number.offsetHeight-15/scale)+'px');}
     if(!root.classList.contains('viewport-mobile')||frame.dataset.psState!=='page')return;
     const card=frame.querySelector('.cards-stack-container'),caption=frame.querySelector('.card-caption-desc');
@@ -267,6 +293,7 @@
     for(const key of ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','color'])clone.style[key]=style[key];
     track.parentElement.appendChild(clone);clone.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-24px)'}],{duration:180,easing:'ease-out'}).finished.then(()=>clone.remove()).catch(()=>clone.remove());
   }
+<<<<<<< HEAD
 
   function desktopStoryData(phase){return [phase01Queue,phase02Queue,phase03Queue,phase04Queue][phase-1];}
   function stopDesktopStory(story){
@@ -373,12 +400,21 @@
   function viewKind(state){return typeof state==='number'?'page':state==='default'?'default':'intro';}
   function captureStoryTransition(frame,state,previous){
     captureDesktopStory(frame);
+=======
+  function phaseState(phase){return [currentState,currentPhase2State,currentPhase3State,currentPhase4State][phase-1];}
+  function viewKind(state){return typeof state==='number'?'page':state==='default'?'default':'intro';}
+  function captureStoryTransition(frame,state,previous){
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     if(!layoutReady||viewKind(state)===viewKind(previous)||matchMedia('(prefers-reduced-motion: reduce)').matches)return [];
     const mobile=root.classList.contains('viewport-mobile');
     const readingChange=viewKind(previous)!=='page'&&viewKind(state)!=='page';
     const names=viewKind(previous)==='page'?['.page-content-box','.cards-stack-container','.card-caption-desc']:mobile?(readingChange?['.default-visual-box','.default-paragraphs']:['.default-quote','.default-visual-box','.default-paragraphs']):['.default-content-box','.default-visual-box'];
+<<<<<<< HEAD
     const snapshotNames=frame._desktopStory?names.filter(name=>name!=='.default-content-box'&&name!=='.page-content-box'):names;
     return snapshotNames.map(selector=>{const el=frame.querySelector(selector);if(!el||getComputedStyle(el).display==='none')return null;const rect=el.getBoundingClientRect();if(!rect.width||!rect.height)return null;
+=======
+    return names.map(selector=>{const el=frame.querySelector(selector);if(!el||getComputedStyle(el).display==='none')return null;const rect=el.getBoundingClientRect();if(!rect.width||!rect.height)return null;
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       const clone=el.cloneNode(true);clone.removeAttribute('id');clone.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));clone.classList.remove('is-hidden');clone.setAttribute('aria-hidden','true');
       const values={position:'fixed',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',padding:selector==='.default-quote'?getComputedStyle(el).padding:'0',zIndex:'35',pointerEvents:'none',visibility:'visible',display:'block',opacity:'1',transformOrigin:'top left'};
       Object.entries(values).forEach(([k,v])=>clone.style.setProperty(k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),v,'important'));
@@ -394,6 +430,7 @@
   }
   function finishStoryTransition(frame,phase,state,previous,snapshots){
     setHomeGeometry(frame,phase);
+<<<<<<< HEAD
     renderDesktopStory(frame,phase,state,previous,true);
     if(innerWidth>=1200&&typeof state==='number'&&typeof previous!=='number'){
       const next=frame.querySelector('.reel-nav-buttons button:last-child');
@@ -406,6 +443,13 @@
       const morph=selector==='.default-visual-box'&&viewKind(state)!=='page';
       const slideLeft=window.innerWidth>=1200&&selector==='.default-visual-box'&&viewKind(previous)!=='page'&&viewKind(state)==='page';
       let transform=slideLeft?'translateX(-64px)':selector==='.default-visual-box'?'scale(.92)':(window.innerWidth>=1200?'none':'translateY(-20px)');
+=======
+    requestAnimationFrame(()=>positionMobileControls(frame));
+    if(viewKind(state)!==viewKind(previous))frame.scrollTop=0;
+    snapshots.forEach(({selector,clone,rect})=>{
+      const morph=selector==='.default-visual-box'&&viewKind(state)!=='page';
+      let transform=selector==='.default-visual-box'?'scale(.92)':'translateY(-20px)';
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       if(selector==='.default-visual-box'&&viewKind(state)!=='page'){
         const visual=frame.querySelector(selector);const oldTransition=visual.style.transition;visual.style.transition='none';
         const next=visual.getBoundingClientRect();visual.style.transition=oldTransition;
@@ -413,6 +457,7 @@
         visual.animate([{opacity:0},{opacity:0}],{duration:280,easing:'cubic-bezier(0.25,1,0.5,1)'});
       }
       clone.style.removeProperty('opacity');
+<<<<<<< HEAD
       const animation=clone.animate([{opacity:1,transform:'none'},{opacity:morph?1:0,transform}],{duration:morph?280:slideLeft?1500:180,easing:'cubic-bezier(0.25,1,0.5,1)',fill:'forwards'});
       animation.finished.catch(()=>{}).then(()=>{clone.remove();transitionOverlays.delete(clone);});
     });
@@ -424,6 +469,12 @@
         const restore=()=>{el.style.transition=previousTransition;};incoming.finished.then(restore,restore);
       }else el.animate([{opacity:0},{opacity:1}],{duration:180,easing:'cubic-bezier(0.25,1,0.5,1)'});
     }});}
+=======
+      const animation=clone.animate([{opacity:1,transform:'none'},{opacity:morph?1:0,transform}],{duration:morph?280:180,easing:'cubic-bezier(0.25,1,0.5,1)',fill:'forwards'});
+      animation.finished.catch(()=>{}).then(()=>{clone.remove();transitionOverlays.delete(clone);});
+    });
+    if(snapshots.length){const selectors=viewKind(state)==='page'?['.page-content-box','.cards-stack-container','.card-meta-header','.card-caption-desc','.reel-page-indicator','.reel-nav-buttons']:[viewKind(state)==='intro'?'.default-paragraphs':'.default-content-box'];selectors.forEach(selector=>{const el=frame.querySelector(selector);if(el&&getComputedStyle(el).display!=='contents')el.animate([{opacity:0},{opacity:1}],{duration:180,easing:'cubic-bezier(0.25,1,0.5,1)'});});}
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     if(layoutReady&&viewKind(state)!==viewKind(previous))scrollToAnchor(phase,viewKind(state),matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
   }
   function advanceHomeStory(phase){
@@ -576,10 +627,13 @@ const phase01Queue = [
       root.style.setProperty('--side-rail-rock-inner-x','20px');
       if(!root.classList.contains('viewport-mobile')&&!root.classList.contains('viewport-tablet')) {
         const bounds=root.getBoundingClientRect();
+<<<<<<< HEAD
         const canvas=root.querySelector('.canvas-frame');
         const pixelRatio=window.devicePixelRatio||1;
         const centerX=Math.round(((canvas?canvas.clientWidth:bounds.width)/2)*pixelRatio)/pixelRatio;
         root.style.setProperty('--ps-center-line-x',centerX+'px');
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
         const nav=root.querySelector('.global-stage-nav');
         const rail=root.querySelector('.phase-vertical-tag');
         const occupiedRight=Math.max(0,nav?nav.getBoundingClientRect().right-bounds.left:0,rail?rail.getBoundingClientRect().right-bounds.left:0);
@@ -587,11 +641,16 @@ const phase01Queue = [
         const end=bounds.width/2-32;
         const available=Math.max(0,end-start);
         const textWidth=Math.min(600,available);
+<<<<<<< HEAD
         const originalTextX=start+(available-textWidth)/2;
         const sharedLeft=(originalTextX+232)/2;
         root.style.setProperty('--ps-left-text-x',sharedLeft+'px');
         root.style.setProperty('--left-content-x',sharedLeft+'px');
         root.style.setProperty('--ps-left-text-width',(textWidth*.9)+'px');
+=======
+        root.style.setProperty('--ps-left-text-x',(start+(available-textWidth)/2)+'px');
+        root.style.setProperty('--ps-left-text-width',textWidth+'px');
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       }
     }
 
@@ -894,8 +953,11 @@ const phase01Queue = [
     }
 
     function renderQuotes(toPage, fromPage, direction) {
+<<<<<<< HEAD
       // Keep desktop text at the same quote anchor on every card.
       if(window.innerWidth>=1200)direction=0;
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       initSentenceTracks();
 
       const toData = phase01Pages[toPage - 1];
@@ -1602,7 +1664,10 @@ const phase01Queue = [
     // - JS 只負責「目前停在哪個錨點」→ 套用對應狀態，不再攔截 wheel / touch
     // =========================================================================
     let programmaticScroll = false;
+<<<<<<< HEAD
 
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     let programmaticTimer = null;
 
     
@@ -1666,7 +1731,10 @@ const phase01Queue = [
     }
 
     function endProgrammaticScroll() {
+<<<<<<< HEAD
 
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       clearTimeout(programmaticTimer);
       programmaticScroll = false;
       lastManualStateTime=0;
@@ -1771,12 +1839,20 @@ const phase01Queue = [
       requestAnimationFrame(() => {
         scrollTicking = false;
         const rootRect = root.getBoundingClientRect();
+<<<<<<< HEAD
         const isInView = (rootRect.bottom > navHeight + 2 && rootRect.top <= navHeight + 2);
+=======
+        const isInView = (rootRect.bottom > navHeight && rootRect.top < window.innerHeight);
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
         root.classList.toggle('is-inview', isInView);
 
         // 控制 html.ps-snap：僅在進入此區塊範圍時開啟吸附
         const inSnapZone = (rootRect.top <= navHeight + 10 && rootRect.bottom >= window.innerHeight - 10);
+<<<<<<< HEAD
         document.documentElement.classList.remove('ps-snap');
+=======
+        document.documentElement.classList.toggle('ps-snap', inSnapZone && !programmaticScroll);
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
 
         if (!programmaticScroll && isInView) {
           clearTimeout(scrollSettleTimer);scrollSettleTimer=setTimeout(applyAnchorState,180);
@@ -2083,8 +2159,11 @@ const phase01Queue = [
     }
 
     function renderQuotes2(toPage, fromPage, direction = 0) {
+<<<<<<< HEAD
       // Keep desktop text at the same quote anchor on every card.
       if(window.innerWidth>=1200)direction=0;
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       initSentenceTracks2();
       const toData = phase02Pages[toPage - 1];
       const targetSentenceIdx = toData.sentenceIndex;
@@ -2618,8 +2697,11 @@ const phase01Queue = [
     }
 
     function renderQuotes3(toPage, fromPage, direction = 0) {
+<<<<<<< HEAD
       // Keep desktop text at the same quote anchor on every card.
       if(window.innerWidth>=1200)direction=0;
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       initSentenceTracks3();
       const toData = phase03Pages[toPage - 1];
       const targetSentenceIdx = toData.sentenceIndex;
@@ -3148,8 +3230,11 @@ const phase01Queue = [
     }
 
     function renderQuotes4(toPage, fromPage, direction = 0) {
+<<<<<<< HEAD
       // Keep desktop text at the same quote anchor on every card.
       if(window.innerWidth>=1200)direction=0;
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
       initSentenceTracks4();
       const toData = phase04Pages[toPage - 1];
       const targetSentenceIdx = toData.sentenceIndex;
@@ -3587,6 +3672,7 @@ const phase01Queue = [
     }
 
     
+<<<<<<< HEAD
     // A shared side rail follows the same chapter and detail state as tablet.
 
     function setupDesktopHints() {
@@ -3626,14 +3712,20 @@ const phase01Queue = [
       addEventListener('scroll',()=>{const now=scrollY,p=positions();if(!p.length){previous=now;return}const top=previous<p[0]-2&&now>=p[0]-2&&now>previous,bottom=previous>p[p.length-1]+2&&now<=p[p.length-1]+2&&now<previous;previous=now;if(moving||programmaticScroll||(!top&&!bottom))return;const i=top?0:p.length-1;used=true;if(touch)touch.used=true;clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0},top?120:300);scrollTo({top:p[i],behavior:'instant'});previous=p[i];if(!top)go(i)},{passive:true});
     }
 
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     window.addEventListener('scroll', handleWindowScroll, { passive: true });
     window.addEventListener('resize',scheduleResponsiveLayout,{passive:true});
 
     // 初始化
     prepareStoryContent();
+<<<<<<< HEAD
     setupDesktopPaging();
     setupDesktopSideRail();
     setupDesktopHints();
+=======
+    setupHomeScrollIntent();
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     const controlsObserver=new ResizeObserver(()=>requestAnimationFrame(()=>root.querySelectorAll(".canvas-frame").forEach(positionMobileControls)));
     root.querySelectorAll(".cards-stack-container,.card-caption-desc").forEach(el=>controlsObserver.observe(el));
     updateImageSources();
@@ -3643,7 +3735,10 @@ const phase01Queue = [
     initSentenceTracks2();
     initSentenceTracks3();
     initSentenceTracks4();
+<<<<<<< HEAD
     setupDesktopStorySurfaces();
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
     setupCardSwipeGestures();
     updateGlobalTopLeftBadge(1, false);
     updateCenterLineScroll();
@@ -3720,6 +3815,7 @@ const phase01Queue = [
 })();
 
 
+<<<<<<< HEAD
 
 
 
@@ -3788,3 +3884,5 @@ const phase01Queue = [
 
 
 
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab

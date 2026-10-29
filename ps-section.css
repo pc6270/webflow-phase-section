@@ -2132,6 +2132,7 @@ html.ps-snap {scroll-snap-type:y mandatory;scroll-padding-top:var(--ps-nav-h,0px
 
 /* English heading weight: one step above the desktop baseline. */
 @media(min-width:1200px){#ps-root .section-title-en,#ps-root .card-cat-en{font-weight:500}#ps-root .section-title-en{font-size:20px}#ps-root .card-cat-en{font-size:calc(var(--card-title-en-size) - 4px)}}
+<<<<<<< HEAD
 
 @media (min-width:1200px) {
  #ps-root .canvas-frame .phase-vertical-tag, #ps-root .canvas-frame .side-rock-icon { visibility:hidden !important; }
@@ -2248,3 +2249,5 @@ html.ps-snap {scroll-snap-type:y mandatory;scroll-padding-top:var(--ps-nav-h,0px
 @keyframes ps-next-hint{0%,100%{opacity:1}50%{opacity:.38}}
 @media(min-width:1200px){#ps-root .reel-nav-buttons button.ps-next-hint{animation:ps-next-hint 1.8s ease-in-out 2;}}
 @media(prefers-reduced-motion:reduce){#ps-root .reel-nav-buttons button.ps-next-hint{animation:none;}}
+=======
+>>>>>>> b1b433789eebc678b540f46292834fc4438787ab
