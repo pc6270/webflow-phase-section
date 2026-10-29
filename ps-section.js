@@ -6,6 +6,7 @@
   'use strict';
   const root = document.getElementById('ps-root');
   if (!root) return;
+  if (window.matchMedia('(max-width:1199px)').matches) return;
 
   const ASSET_BASE = root.getAttribute('data-asset-base') || '';
   const ASSETS = {
@@ -21,10 +22,10 @@
     // ==========================================
     // B. 各 Phase 首頁主圖與原石小圖 (共 10 項，已轉為 .avif)
     // ==========================================
-    "phase01-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1381b4d5b0c8164f2a2c_phase01-img.avif",
-    "phase02-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13808cefba012e6ea6fb_phase02-img.avif",
-    "phase03-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1381cdd337debbb7b147_phase03-img.avif",
-    "phase04-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380b4d5b0c8164f2a11_phase04-img.avif",
+    "phase01-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1dfb028eb2bb522520_phase01-img.avif",
+    "phase02-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1d7e072b14c23c561e_phase02-img.avif",
+    "phase03-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1d838bc7acbce4c3e6_phase03-img.avif",
+    "phase04-img.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acfed1dc4067cdc8365e206_phase04-img.avif",
     "rock01.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc13804b19aa9175fe8798_rock01.avif",
     "rock02.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc138038881bba415dfce1_rock02.avif",
     "rock03.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc1380cdd337debbb7b11a_rock03.avif",
@@ -94,55 +95,358 @@
 
   // 讀取固定導覽列高度 (以全裝置 Header 高度變數 --header-h 優先進行版面高度計算)
   let navHeight = 110;
-  function updateNavHeight() {
-    const rootStyle = getComputedStyle(document.documentElement);
-    const cssHeaderH = parseFloat(rootStyle.getPropertyValue('--header-h'));
-    if (!isNaN(cssHeaderH) && cssHeaderH > 0) {
-      navHeight = cssHeaderH;
-    } else {
-      const navAttr = root.getAttribute('data-nav');
-      if (!navAttr) {
-        navHeight = 110;
-      } else if (/^\d+(\.\d+)?$/.test(navAttr)) {
-        navHeight = parseFloat(navAttr);
-      } else {
-        const navEl = document.querySelector(navAttr);
-        navHeight = navEl ? navEl.offsetHeight : 110;
-      }
-    }
-    document.documentElement.style.setProperty('--ps-nav-h', `${navHeight}px`);
+  let layoutReady = false;
+  let layoutRaf = 0;
+  const cardAnimationTimers = new Set();
+  function queueCardAnimation(fn, delay) {
+    const id = setTimeout(() => { cardAnimationTimers.delete(id); fn(); }, delay);
+    cardAnimationTimers.add(id);
+    return id;
   }
-
-  // 自適應 100vh 縮放比例計算 (以扣除 Header 後高度 (vh) 容納完整版面為主等比縮放)
+  function updateNavHeight() {
+    const selector = root.getAttribute('data-nav');
+    const el = selector && !/^\d+(\.\d+)?$/.test(selector) ? document.querySelector(selector) : null;
+    // Use the website's shared header height where provided; a numeric data-nav
+    // remains an explicit override (the standalone preview uses zero).
+    const sharedHeader = getComputedStyle(root).getPropertyValue('--site-header-height').trim();
+    if (selector && /^\d+(\.\d+)?$/.test(selector)) navHeight = Number(selector);
+    else if (sharedHeader) {
+      const sharedProbe=document.createElement('div');
+      sharedProbe.style.cssText='position:absolute;visibility:hidden;width:0;height:var(--site-header-height);pointer-events:none';
+      root.appendChild(sharedProbe); navHeight=Math.max(0,sharedProbe.getBoundingClientRect().height); sharedProbe.remove();
+    }
+    else if (el) navHeight = Math.max(0, el.getBoundingClientRect().height);
+    else {
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:absolute;visibility:hidden;width:0;height:var(--header-h,64px);pointer-events:none';
+      root.appendChild(probe);
+      navHeight = probe.getBoundingClientRect().height;
+      probe.remove();
+    }
+    root.style.setProperty('--ps-nav-h', navHeight + 'px');
+    document.documentElement.style.setProperty('--ps-nav-h', navHeight + 'px');
+  }
   function updateResponsiveScale() {
-    updateNavHeight();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight - navHeight;
     const wrapper = document.getElementById('canvasViewportWrapper');
     if (!wrapper) return;
-
-    let scale = 1;
-    if (vw <= 767) {
-      wrapper.className = 'canvas-viewport-wrapper viewport-mobile';
-      document.body.classList.add('viewport-mobile');
-      document.body.classList.remove('viewport-tablet');
-      // 手機基準 390 x 874，以高度容納完整版面為主等比縮放
-      scale = Math.min(vh / 874, vw / 390);
-      setMobileTitlePosition('above');
-    } else if (vw <= 1024) {
-      wrapper.className = 'canvas-viewport-wrapper viewport-tablet';
-      document.body.classList.add('viewport-tablet');
-      document.body.classList.remove('viewport-mobile');
-      // 平板基準 1024 x 1366：以高度調整容納完整版面等比縮放 (字級最低限制保護由 CSS 獨立約束)
-      scale = Math.min(vh / 1366, vw / 1024);
-    } else {
-      wrapper.className = 'canvas-viewport-wrapper';
-      document.body.classList.remove('viewport-mobile', 'viewport-tablet');
-      // 桌面基準 1440 x 1048：方案 A 智慧約束縮放 (以視窗高度為安全上限，確保 100vh 垂直完整可視，絕不裁切底部)
-      scale = Math.min(vw / 1440, vh / 1048);
+    const frames = Array.from(root.querySelectorAll('.canvas-frame'));
+    const reference = layoutReady ? frames.reduce((best,frame) => Math.abs(frame.getBoundingClientRect().top-navHeight)<Math.abs(best.getBoundingClientRect().top-navHeight)?frame:best,frames[0]) : null;
+    const oldTop = reference ? reference.parentElement.getBoundingClientRect().top : 0;
+    updateNavHeight();
+    const width = Math.min(document.documentElement.clientWidth, root.getBoundingClientRect().width);
+    const mobile = width <= 767 || (width <= 1024 && window.innerHeight <= 500) || (width <= 1024 && !CSS.supports('zoom','1'));
+    const tablet = !mobile && width <= 1120;
+    const scale = mobile || !tablet ? 1 : Math.min(1, width / 1024);
+    wrapper.classList.toggle('viewport-mobile',mobile);
+    wrapper.classList.toggle('viewport-tablet',tablet);
+    // Existing component selectors also cover fixed navigation outside the wrapper.
+    root.classList.toggle('viewport-mobile',mobile);
+    root.classList.toggle('viewport-tablet',tablet);
+    document.body.classList.remove('viewport-mobile','viewport-tablet');
+    root.style.setProperty('--ps-scale',String(scale));
+    // Desktop canvas follows the dynamic viewport, with a 760px minimum content height.
+    let dvhProbe=root.querySelector('.ps-dvh-probe');
+    if(!dvhProbe){dvhProbe=document.createElement('div');dvhProbe.className='ps-dvh-probe';dvhProbe.style.cssText='position:fixed;left:0;top:0;width:0;height:100vh;height:100dvh;visibility:hidden;pointer-events:none';root.append(dvhProbe);}
+    const desktopHeight=Math.max(760,dvhProbe.getBoundingClientRect().height-navHeight);
+    // Reduce the card continuously below the 1440px reference width.
+    const desktopCardWidth=Math.min(521, 521*width/1440, Math.max(240,width/2-85));
+    root.style.setProperty('--card-active-width',desktopCardWidth+'px');
+    root.style.setProperty('--card-active-height',(desktopCardWidth*393/521)+'px');
+    root.style.setProperty('--card-sub-x',(desktopCardWidth+55)+'px');
+    root.style.setProperty('--ps-desktop-x-scale',String(width/1440));
+    root.style.setProperty('--ps-desktop-y-scale',String(760/1048));
+    const homeWidth=Math.min(660,width/2-64);
+    root.style.setProperty('--ps-home-width',homeWidth+'px');
+    root.style.setProperty('--ps-home-height',(homeWidth*530/580)+'px');
+    root.style.setProperty('--ps-frame-height',(tablet?1366:desktopHeight)+'px');
+    root.style.setProperty('--ps-sticky-top',(navHeight/scale)+'px');
+    root.style.setProperty('--ps-view-height',Math.max(240,(window.visualViewport?.height||window.innerHeight)-navHeight)+'px');
+    root.classList.toggle('desktop-short',width>=1200&&desktopHeight>(window.visualViewport?.height||innerHeight)-navHeight+1);
+    if(width>=1200&&!root.classList.contains('desktop-short'))frames.forEach(frame=>{frame.scrollTop=0;});
+    root.style.setProperty('--ps-page-distance',(mobile?300:tablet?380:420)+'px');
+    frames.forEach((frame,i)=>setHomeGeometry(frame,i+1));
+    requestAnimationFrame(()=>frames.forEach(positionMobileControls));
+    transitionOverlays.forEach(el=>el.remove());transitionOverlays.clear();
+    root.classList.remove('ps-flow');
+    document.documentElement.classList.remove('ps-snap');
+    if (layoutReady) {
+      cardAnimationTimers.forEach(clearTimeout);cardAnimationTimers.clear();
+      isTransitioning=isTransitioning2=isTransitioning3=isTransitioning4=false;
+      currentSentenceIndex=currentSentenceIndex2=currentSentenceIndex3=currentSentenceIndex4=null;
+      const values=[currentState,currentPhase2State,currentPhase3State,currentPhase4State];
+      [renderPage,renderPage2,renderPage3,renderPage4].forEach((render,i)=>{if(typeof values[i]==='number')render(values[i],values[i],0);});
+      if(reference)window.scrollBy({top:reference.parentElement.getBoundingClientRect().top-oldTop,behavior:'instant'});
     }
-    root.style.setProperty('--ps-scale', scale);
     syncGlobalFixedComponentsPosition();
+    refreshDesktopStories();
+    updateCenterLineScroll();
+    handleWindowScroll();
+  }
+  function scheduleResponsiveLayout() {
+    cancelAnimationFrame(layoutRaf);
+    layoutRaf=requestAnimationFrame(updateResponsiveScale);
+  }
+
+
+  // Figma scene bounds: desktop 933:4883, tablet 685:12850, mobile 685:14564.
+  const HOME_SCENES={
+    desktop:[{x:770.52,y:292,w:544.48,h:589.46,fh:1048},{x:783,y:287,w:564.18,h:566,fh:1108},{x:832,y:254,w:548,h:642,fh:1105},{x:745,y:232,w:548.96,h:575,fh:1115}],
+    tablet:[{x:145,y:365,w:527,h:570},{x:222,y:321,w:580.18,h:582.05},{x:203,y:346,w:548,h:642},{x:93,y:297,w:548.96,h:575}],
+    mobile:[{x:32,y:283.85,w:407.61,h:441.15},{x:-22,y:262,w:447.70,h:449.15},{x:-18,y:272,w:438,h:513.13},{x:-58,y:233,w:457.31,h:479}],
+    intro:{x:120,y:233,w:239.4,h:259.1}
+  };
+  const transitionOverlays=new Set();
+  function prepareStoryContent(){
+    root.querySelectorAll('.default-content-box').forEach(box=>{
+      if(box.querySelector('.default-paragraphs'))return;
+      const copy=document.createElement('div');copy.className='default-paragraphs';
+      Array.from(box.querySelectorAll('.default-paragraph')).forEach(p=>copy.appendChild(p));box.appendChild(copy);
+    });
+  }
+  function setHomeGeometry(frame,phase){
+    const width=root.getBoundingClientRect().width,scale=parseFloat(root.style.getPropertyValue('--ps-scale'))||1;
+    const mobile=root.classList.contains('viewport-mobile'),tablet=root.classList.contains('viewport-tablet');
+    const scene=HOME_SCENES.desktop[phase-1],tabletScene=HOME_SCENES.tablet[phase-1];
+    // 100dvh is measured directly so image size follows the visible viewport.
+    let dvhProbe=root.querySelector('.ps-dvh-probe');
+    if(!dvhProbe){dvhProbe=document.createElement('div');dvhProbe.className='ps-dvh-probe';dvhProbe.style.cssText='position:fixed;left:0;top:0;width:0;height:100vh;height:100dvh;visibility:hidden;pointer-events:none';root.append(dvhProbe);}
+    const availableHeight=Math.max(240,dvhProbe.getBoundingClientRect().height-navHeight);
+    const originalWidth=Math.min(660*scene.w/544.48,width/2-64);
+    const dw=mobile||tablet?originalWidth:originalWidth*.9*Math.min(1,Math.min(760,availableHeight)/1048),dh=dw*scene.h/scene.w;
+    const baseHeight=mobile||tablet?(parseFloat(root.style.getPropertyValue('--ps-frame-height'))||1048):760;
+    frame.style.setProperty('--ps-home-scene-width',dw+'px');frame.style.setProperty('--ps-home-scene-height',dh+'px');
+    frame.style.setProperty('--ps-home-scene-x',(width*(scene.x+scene.w/2)/1440-dw/2)+'px');
+    frame.style.setProperty('--ps-home-scene-y',(baseHeight*(scene.y+scene.h/2)/scene.fh-dh/2)+'px');
+    frame.style.setProperty('--ps-tablet-home-x',tabletScene.x+'px');frame.style.setProperty('--ps-tablet-home-y',tabletScene.y+'px');
+    frame.style.setProperty('--ps-tablet-home-width',tabletScene.w+'px');frame.style.setProperty('--ps-tablet-home-height',tabletScene.h+'px');
+    frame.style.setProperty('--ps-tablet-copy-y',Math.max(967,tabletScene.y+tabletScene.h+24)+'px');
+    if(mobile){
+      const s=frame.dataset.psState==='intro'?HOME_SCENES.intro:HOME_SCENES.mobile[phase-1];
+      const style=getComputedStyle(frame),left=parseFloat(style.paddingLeft),right=parseFloat(style.paddingRight);
+      const landscape=width>=760&&window.innerHeight<=500;
+      const column=landscape?(width-left-right-28)/2:width;
+      let w=column*(s.w/402),h=w*s.h/s.w;
+      if(landscape){const limit=Math.max(160,parseFloat(root.style.getPropertyValue('--ps-view-height'))-84);if(h>limit){w*=limit/h;h=limit;}}
+      const targetCenter=(s.x+s.w/2)/402*column;
+      const contentCenter=landscape?column/2:left+(width-left-right)/2;
+      frame.style.setProperty('--ps-mobile-home-width',w+'px');frame.style.setProperty('--ps-mobile-home-height',h+'px');
+      frame.style.setProperty('--ps-mobile-home-shift',(targetCenter-contentCenter)+'px');
+      frame.style.setProperty('--ps-mobile-home-gap',Math.max(24,s.y-219)+'px');
+    }
+  }
+  function updateShortDesktopFrame(frame){
+    if(!root.classList.contains('desktop-short'))return;
+    const b=frame.getBoundingClientRect(),offset=frame.scrollTop;
+    const bottom=selector=>{const el=frame.querySelector(selector);return el&&el.getClientRects().length?el.getBoundingClientRect().bottom-b.top+offset:0;};
+    const page=frame.dataset.psState==='page';
+    const text=frame.querySelector('.sentence-track.is-active');
+    const quoteHeight=text?Math.max(text.offsetHeight,Number(text.dataset.storyFinalHeight)||0):120;
+    const number=frame.querySelector('.reel-page-indicator');
+    const numberHeight=number?number.offsetHeight:100;
+    const extent=page?Math.max(bottom('.card-caption-desc')+100,231+Math.max(quoteHeight+70,200)+numberHeight+150):Math.max(bottom(frame._desktopStory?'.desktop-story-text':'.default-paragraphs')+56,bottom('.default-visual-box')+40);
+    frame.style.setProperty('--ps-short-content-height',Math.ceil(Math.max(760,extent))+'px');
+    frame.style.setProperty('--ps-short-number-height',numberHeight+'px');
+    frame.style.setProperty('--ps-short-quote-height',Math.max(quoteHeight+70,200)+'px');
+  }
+  function canReadDesktopFrame(frame,direction){return root.classList.contains('desktop-short')&&frame&&window.innerWidth>=1200&&frame.scrollHeight>frame.clientHeight+2&&(direction>0?frame.scrollTop+frame.clientHeight<frame.scrollHeight-2:frame.scrollTop>2);}
+  function positionMobileControls(frame){
+    if(window.innerWidth>=1200){const number=frame.querySelector('.reel-page-indicator');if(number)frame.style.setProperty('--ps-desktop-number-height',number.offsetHeight+'px');}
+    updateShortDesktopFrame(frame);
+    if(root.classList.contains('viewport-tablet')&&frame.dataset.psState==='page'){const nav=frame.querySelector('.reel-nav-buttons'),number=frame.querySelector('.reel-page-indicator');const scale=parseFloat(root.style.getPropertyValue('--ps-scale'))||1;frame.style.setProperty('--ps-tablet-number-y',(nav.offsetTop-number.offsetHeight-15/scale)+'px');}
+    if(!root.classList.contains('viewport-mobile')||frame.dataset.psState!=='page')return;
+    const card=frame.querySelector('.cards-stack-container'),caption=frame.querySelector('.card-caption-desc');
+    const f=frame.getBoundingClientRect(),c=card.getBoundingClientRect(),d=caption.getBoundingClientRect();
+    frame.style.setProperty('--ps-mobile-controls-x',(c.left-f.left-22)+'px');
+    frame.style.setProperty('--ps-mobile-controls-y',(c.top-f.top+frame.scrollTop+c.height/2-22)+'px');
+    frame.style.setProperty('--ps-mobile-controls-width',(c.width+44)+'px');
+    frame.style.setProperty('--ps-mobile-number-y',Math.max(frame.clientHeight-76,d.bottom-f.top+frame.scrollTop+24)+'px');
+  }
+  function animateLeavingQuote(track){
+    const clone=track.cloneNode(true);clone.removeAttribute('id');clone.className='ps-quote-exit';
+    const style=getComputedStyle(track);clone.style.cssText='position:absolute;top:0;left:0;width:100%;pointer-events:none;margin:0;z-index:12;';
+    for(const key of ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','color'])clone.style[key]=style[key];
+    track.parentElement.appendChild(clone);clone.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-24px)'}],{duration:180,easing:'ease-out'}).finished.then(()=>clone.remove()).catch(()=>clone.remove());
+  }
+
+  function desktopStoryData(phase){return [phase01Queue,phase02Queue,phase03Queue,phase04Queue][phase-1];}
+  function stopDesktopStory(story){
+    story.revision++;
+    story.animations.forEach(a=>a.cancel());story.animations=[];
+  }
+  function setupDesktopStorySurfaces(){
+    if(innerWidth<1200)return;
+    root.querySelectorAll('.canvas-frame').forEach((frame,index)=>{
+      if(frame._desktopStory)return;
+      const stage=frame.querySelector('.main-text-stage');
+      const rows=Array.from(stage.querySelectorAll('.sentence-track'));
+      if(!rows.length)return;
+      const tagline=frame.querySelector('.default-quote');
+      const copy=frame.querySelector('.default-paragraphs');
+      const line=frame.querySelector('.reel-line-note');
+      const home=frame.querySelector('.default-content-box');
+      const surface=document.createElement('div');surface.className='desktop-story-text';
+      tagline.classList.add('desktop-story-tagline');
+      surface.append(tagline,stage,line);frame.append(surface);
+      const normalize=text=>text.replace(/[\s，。；、：！？,.;:!?—「」『』]/g,'');
+      const paragraphs=Array.from(copy.querySelectorAll('.default-paragraph')).map(p=>normalize(p.textContent));
+      const queue=desktopStoryData(index+1);
+      const groups=queue.map(text=>paragraphs.findIndex(p=>p.includes(normalize(text))));
+      frame._desktopStory={surface,stage,rows,tagline,line,copy,home,groups,animations:[],revision:0,before:null};
+      frame.classList.add('has-shared-story');
+      frame.addEventListener('scroll',()=>{if(innerWidth>=1200&&frame.scrollLeft)frame.scrollLeft=0;},{passive:true});
+      surface.addEventListener('click',()=>{if(frame.dataset.psState!=='page'&&getSelection()?.isCollapsed!==false)advanceHomeStory(index+1);});
+      renderDesktopStory(frame,index+1,phaseState(index+1),phaseState(index+1),false);
+    });
+  }
+  function captureDesktopStory(frame){
+    const story=frame._desktopStory;if(!story||innerWidth<1200)return;
+    const read=row=>{const rect=row.getBoundingClientRect(),style=getComputedStyle(row);return {x:rect.left,y:rect.top,fontSize:style.fontSize,fontWeight:style.fontWeight,letterSpacing:style.letterSpacing,paddingLeft:style.paddingLeft,opacity:style.opacity};};
+    story.before={rows:story.rows.map(read),lineHeight:getComputedStyle(story.line).height,tagline:read(story.tagline),scrollTop:frame.scrollTop};
+    stopDesktopStory(story);
+  }
+  function renderDesktopStory(frame,phase,state,previous,animate){
+    const story=frame._desktopStory;if(!story||innerWidth<1200)return;
+    const before=story.before;story.before=null;
+    stopDesktopStory(story);const revision=story.revision;
+    const page=typeof state==='number';
+    story.surface.dataset.kind=page?'page':'home';
+    story.tagline.setAttribute('aria-hidden',page?'true':'false');
+    frame.scrollLeft=0;
+    story.rows.forEach(row=>{row.style.transition='none';});
+    story.line.style.transition='none';
+    if(!page){
+      const queue=desktopStoryData(phase);
+      let y=Math.max(story.tagline.offsetHeight+32,(parseFloat(getComputedStyle(story.copy).marginTop)||174)-4);
+      story.rows.forEach((row,index)=>{
+        if(index&&story.groups[index]!==story.groups[index-1])y+=28;
+        row.className='sentence-track is-story-body';row.textContent=queue[index];
+        row.style.transform='translateY('+y+'px)';row.style.opacity='1';
+        row.removeAttribute('aria-hidden');
+        y+=row.offsetHeight;
+      });
+      story.surface.style.setProperty('--ps-story-home-height',Math.ceil(y)+'px');
+      story.line.style.height=(story.tagline.offsetHeight+10)+'px';
+    }else{
+      const active=story.rows.find(row=>row.classList.contains('is-active'));
+      if(active){active.dataset.storyFinalHeight=String(active.offsetHeight);story.line.style.height=(active.offsetHeight+10)+'px';}
+      story.rows.forEach(row=>row.setAttribute('aria-hidden',row.classList.contains('is-past')?'true':'false'));
+    }
+    const canAnimate=animate&&before&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(canAnimate){
+      const entering=page&&typeof previous!=='number';
+      const leaving=!page&&typeof previous==='number';
+      const duration=(entering||leaving)?1000:280;
+      const delay=0;
+      const easing='cubic-bezier(.25,1,.5,1)';
+      story.rows.forEach((row,index)=>{
+        const old=before.rows[index];if(!old)return;
+        const rect=row.getBoundingClientRect(),style=getComputedStyle(row);
+        const finalTransform=style.transform==='none'?'translateY(0)':style.transform;
+        const dx=old.x-rect.left,dy=old.y-rect.top;
+        const animation=row.animate([
+          {transform:'translate('+dx+'px,'+dy+'px) '+finalTransform,fontSize:old.fontSize,fontWeight:old.fontWeight,letterSpacing:old.letterSpacing,paddingLeft:old.paddingLeft,opacity:old.opacity},
+          {transform:finalTransform,fontSize:style.fontSize,fontWeight:style.fontWeight,letterSpacing:style.letterSpacing,paddingLeft:style.paddingLeft,opacity:style.opacity}
+        ],{duration,delay,easing,fill:'backwards'});
+        story.animations.push(animation);
+      });
+      if(entering||leaving)story.animations.push(story.tagline.animate(
+        entering?[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-18px)'}]:[{opacity:0,transform:'translateY(-18px)'},{opacity:1,transform:'translateY(0)'}],
+        {duration:1000,easing,fill:'backwards'}));
+      story.animations.push(story.line.animate([{height:before.lineHeight},{height:story.line.style.height}],{duration,delay,easing,fill:'backwards'}));
+      Promise.allSettled(story.animations.map(a=>a.finished)).then(()=>{
+        if(story.revision!==revision)return;
+        story.animations=[];
+        story.rows.forEach(row=>{row.style.transition='none';});
+        positionMobileControls(frame);
+      });
+    }
+  }
+  function refreshDesktopStories(){
+    if(innerWidth<1200)return;
+    setupDesktopStorySurfaces();
+    root.querySelectorAll('.canvas-frame').forEach((frame,index)=>{
+      if(frame._desktopStory){frame._desktopStory.before=null;renderDesktopStory(frame,index+1,phaseState(index+1),phaseState(index+1),false);}
+    });
+  }
+
+  function phaseState(phase){return [currentState,currentPhase2State,currentPhase3State,currentPhase4State][phase-1];}
+  function viewKind(state){return typeof state==='number'?'page':state==='default'?'default':'intro';}
+  function captureStoryTransition(frame,state,previous){
+    captureDesktopStory(frame);
+    if(!layoutReady||viewKind(state)===viewKind(previous)||matchMedia('(prefers-reduced-motion: reduce)').matches)return [];
+    const mobile=root.classList.contains('viewport-mobile');
+    const readingChange=viewKind(previous)!=='page'&&viewKind(state)!=='page';
+    const names=viewKind(previous)==='page'?['.page-content-box','.cards-stack-container','.card-caption-desc']:mobile?(readingChange?['.default-visual-box','.default-paragraphs']:['.default-quote','.default-visual-box','.default-paragraphs']):['.default-content-box','.default-visual-box'];
+    const snapshotNames=frame._desktopStory?names.filter(name=>name!=='.default-content-box'&&name!=='.page-content-box'):names;
+    return snapshotNames.map(selector=>{const el=frame.querySelector(selector);if(!el||getComputedStyle(el).display==='none')return null;const rect=el.getBoundingClientRect();if(!rect.width||!rect.height)return null;
+      const clone=el.cloneNode(true);clone.removeAttribute('id');clone.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));clone.classList.remove('is-hidden');clone.setAttribute('aria-hidden','true');
+      const values={position:'fixed',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',padding:selector==='.default-quote'?getComputedStyle(el).padding:'0',zIndex:'35',pointerEvents:'none',visibility:'visible',display:'block',opacity:'1',transformOrigin:'top left'};
+      Object.entries(values).forEach(([k,v])=>clone.style.setProperty(k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),v,'important'));
+      const scale=parseFloat(root.style.getPropertyValue('--ps-scale'))||1;
+      const outer=document.createElement('div');outer.className='ps-story-snapshot';outer.inert=true;outer.setAttribute('aria-hidden','true');
+      Object.entries(values).forEach(([k,v])=>outer.style.setProperty(k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase()),v,'important'));
+      outer.style.setProperty('padding','0','important');
+      clone.style.setProperty('position','absolute','important');clone.style.setProperty('left','0','important');clone.style.setProperty('top','0','important');
+      clone.style.setProperty('width',(rect.width/scale)+'px','important');clone.style.setProperty('height',(rect.height/scale)+'px','important');
+      clone.style.setProperty('transform','scale('+scale+')','important');
+      outer.appendChild(clone);root.appendChild(outer);transitionOverlays.add(outer);return{selector,clone:outer,rect};
+    }).filter(Boolean);
+  }
+  function finishStoryTransition(frame,phase,state,previous,snapshots){
+    setHomeGeometry(frame,phase);
+    renderDesktopStory(frame,phase,state,previous,true);
+    if(innerWidth>=1200&&typeof state==='number'&&typeof previous!=='number'){
+      const next=frame.querySelector('.reel-nav-buttons button:last-child');
+      if(next){next.classList.remove('ps-next-hint');void next.offsetWidth;next.classList.add('ps-next-hint');}
+    }
+
+    requestAnimationFrame(()=>{positionMobileControls(frame);if(root.classList.contains('desktop-short')&&viewKind(state)!==viewKind(previous))frame.scrollTop=0;});
+    if(viewKind(state)!==viewKind(previous))frame.scrollTop=0;
+    snapshots.forEach(({selector,clone,rect})=>{
+      const morph=selector==='.default-visual-box'&&viewKind(state)!=='page';
+      const slideLeft=window.innerWidth>=1200&&selector==='.default-visual-box'&&viewKind(previous)!=='page'&&viewKind(state)==='page';
+      let transform=slideLeft?'translateX(-64px)':selector==='.default-visual-box'?'scale(.92)':(window.innerWidth>=1200?'none':'translateY(-20px)');
+      if(selector==='.default-visual-box'&&viewKind(state)!=='page'){
+        const visual=frame.querySelector(selector);const oldTransition=visual.style.transition;visual.style.transition='none';
+        const next=visual.getBoundingClientRect();visual.style.transition=oldTransition;
+        transform='translate('+(next.left-rect.left)+'px,'+(next.top-rect.top)+'px) scale('+(next.width/rect.width)+','+(next.height/rect.height)+')';
+        visual.animate([{opacity:0},{opacity:0}],{duration:280,easing:'cubic-bezier(0.25,1,0.5,1)'});
+      }
+      clone.style.removeProperty('opacity');
+      const animation=clone.animate([{opacity:1,transform:'none'},{opacity:morph?1:0,transform}],{duration:morph?280:slideLeft?1500:180,easing:'cubic-bezier(0.25,1,0.5,1)',fill:'forwards'});
+      animation.finished.catch(()=>{}).then(()=>{clone.remove();transitionOverlays.delete(clone);});
+    });
+    if(snapshots.length){const selectors=viewKind(state)==='page'?['.page-content-box','.cards-stack-container','.card-meta-header','.card-caption-desc','.reel-page-indicator','.reel-nav-buttons']:[viewKind(state)==='intro'?'.default-paragraphs':'.default-content-box'];selectors.forEach(selector=>{const el=frame.querySelector(selector);if(el&&getComputedStyle(el).display!=='contents'&&!(frame._desktopStory&&(selector==='.page-content-box'||selector==='.default-content-box'))){
+      const enterFromRight=window.innerWidth>=1200&&selector==='.cards-stack-container'&&viewKind(previous)!=='page'&&viewKind(state)==='page';
+      if(enterFromRight){
+        const previousTransition=el.style.transition;el.style.transition='none';
+        const incoming=el.animate([{opacity:0,transform:'translateX(64px)'},{opacity:1,transform:'translateX(0)'}],{duration:1500,easing:'cubic-bezier(0.25,1,0.5,1)'});
+        const restore=()=>{el.style.transition=previousTransition;};incoming.finished.then(restore,restore);
+      }else el.animate([{opacity:0},{opacity:1}],{duration:180,easing:'cubic-bezier(0.25,1,0.5,1)'});
+    }});}
+    if(layoutReady&&viewKind(state)!==viewKind(previous))scrollToAnchor(phase,viewKind(state),matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
+  }
+  function advanceHomeStory(phase){
+    const state=phaseState(phase);if(typeof state==='number')return false;
+    const target=state==='default'&&root.classList.contains('viewport-mobile')?'0'+phase+'-1':selectedPages[phase-1];
+    [setState,setPhase2State,setPhase3State,setPhase4State][phase-1](target);return true;
+  }
+  function setupHomeScrollIntent(){
+    let burst=0,last=0,consumed=false,touch=null;
+    root.addEventListener('wheel',event=>{
+      if(Math.abs(event.deltaX)>Math.abs(event.deltaY)||event.ctrlKey)return;
+      const frame=event.target.closest?.('.canvas-frame');if(!frame)return;
+      const now=performance.now();if(now-last>220){burst=0;consumed=false;}last=now;
+      if(consumed){event.preventDefault();return;}
+      const phase=Array.from(root.querySelectorAll('.canvas-frame')).indexOf(frame)+1;
+      if(event.deltaY<=0||phaseState(phase)!=='default')return;
+      const box=frame.getBoundingClientRect();if(box.top>navHeight+24||box.bottom<navHeight+120)return;
+      const unit=event.deltaMode===1?32:event.deltaMode===2?window.innerHeight:1;burst+=event.deltaY*unit;
+      if(burst>=40){event.preventDefault();consumed=true;advanceHomeStory(phase);}
+    },{passive:false});
+    root.addEventListener('touchstart',event=>{if(event.touches.length!==1){touch=null;return;}const frame=event.target.closest?.('.canvas-frame');if(!frame)return;const phase=Array.from(root.querySelectorAll('.canvas-frame')).indexOf(frame)+1;touch={phase,y:event.touches[0].clientY,x:event.touches[0].clientX,state:phaseState(phase)};},{passive:true});
+    root.addEventListener('touchend',event=>{const g=touch;touch=null;if(!g||g.state!=='default'||phaseState(g.phase)!=='default'||!event.changedTouches.length)return;const t=event.changedTouches[0],dy=g.y-t.clientY,dx=g.x-t.clientX;if(dy>=40&&dy>Math.abs(dx)*1.2)advanceHomeStory(g.phase);},{passive:true});
+    root.addEventListener('touchcancel',()=>{touch=null;},{passive:true});
   }
 
   // =========================================================================
@@ -247,6 +551,16 @@ const phase01Queue = [
     
 
     let lastManualStateTime = 0;
+    const selectedPages=[1,1,1,1];
+    function updateCardControls(phase,state) {
+      const suffix=phase===1?'':String(phase);
+      const nav=document.getElementById('reelNavButtons'+suffix);
+      const count=[8,3,4,4][phase-1];
+      if(nav)nav.querySelectorAll('button').forEach((button,i)=>{
+        button.disabled=typeof state==='number' && i===1 && state>=count;
+        button.setAttribute('aria-label',i===0?(state===1?'返回章節介紹':'上一張圖片'):'下一張圖片');
+      });
+    }
 
     // =========================================================================
     // 全域左上角固定標籤與側邊原石動態過渡控制器 (Fixed Top-Left Component)
@@ -257,62 +571,27 @@ const phase01Queue = [
     // 全域固定元件 (左上角原石標籤、左下角導航) 與當前畫布自適應同步
     
     function syncGlobalFixedComponentsPosition() {
-      const wrapper = document.getElementById('canvasViewportWrapper');
-      if (!wrapper) return;
-      const wrapperRect = wrapper.getBoundingClientRect();
-      const canvasLeft = wrapperRect.left;
-      const canvasTop = wrapperRect.top;
-      document.documentElement.style.setProperty('--canvas-left', `${canvasLeft}px`);
-      document.documentElement.style.setProperty('--canvas-top', `${canvasTop}px`);
-
-      // 依照畫面寬度置左 (Screen-Left Anchoring)：
-      // 取得全裝置置左基準線 (桌面: 48px, 平板: 36px, 手機: 20px)
-      const vw = window.innerWidth;
-      const rootStyle = getComputedStyle(document.documentElement);
-      let targetScreenLeft = vw <= 767 ? 20 : (vw <= 1024 ? 36 : 48);
-      const customScreenLeft = parseFloat(rootStyle.getPropertyValue('--side-rail-screen-left'));
-      if (!isNaN(customScreenLeft) && customScreenLeft > 0) {
-        targetScreenLeft = customScreenLeft;
-      }
-
-      // 將螢幕絕對座標轉換為置中縮放畫布內部的相對座標
-      const scale = parseFloat(root.style.getPropertyValue('--ps-scale')) || 1;
-      const innerX = (targetScreenLeft - canvasLeft) / scale;
-
-      // 英文直行字定位 X 座標
-      document.documentElement.style.setProperty('--side-rail-inner-x', `${innerX}px`);
-      // 側邊小原石 (寬度約 172px，中心點與直行字對齊，左緣約 innerX - 38px)
-      document.documentElement.style.setProperty('--side-rail-rock-inner-x', `${innerX - 38}px`);
-
-      // 桌面板引文區：根據螢幕寬度，自動置中於「左側石頭/英文字」與「中間貫通線段」之間的剩餘區塊中心
-      if (vw > 1024) {
-        // 1. 左邊界：扣除左側石頭與英文字 (依螢幕左緣計算，側邊原石右緣約在 targetScreenLeft + 110px * scale)
-        const rockRightScreen = targetScreenLeft + (110 * scale);
-
-        // 2. 右邊界：中間貫通線段 (畫布中心 720px，在螢幕上即為 vw / 2)
-        const centerLineScreen = canvasLeft + (720 * scale);
-        const centerLineMargin = 30 * scale;
-        const rightBoundScreen = centerLineScreen - centerLineMargin;
-
-        // 3. 剩餘空間中心點 (螢幕座標)
-        const zoneCenterScreen = (rockRightScreen + rightBoundScreen) / 2;
-
-        // 4. 引文內容盒寬度 (450px)
-        const textBlockWidth = 450;
-        const textBlockWidthScaled = textBlockWidth * scale;
-
-        // 5. 轉換為畫布內部座標
-        const textBlockLeftScreen = zoneCenterScreen - (textBlockWidthScaled / 2);
-        const innerContentX = (textBlockLeftScreen - canvasLeft) / scale;
-
-        // 6. 安全邊界保護：確保絕不碰撞左側石頭 (innerX + 115px) 且不擠壓到中線 (720px - 450px - 20px = 250px)
-        const minContentX = Math.round(innerX + 115);
-        const maxContentX = Math.round(720 - textBlockWidth - 20);
-        const clampedX = Math.round(Math.max(minContentX, Math.min(innerContentX, maxContentX)));
-
-        document.documentElement.style.setProperty('--left-content-x', `${clampedX}px`);
-      } else {
-        document.documentElement.style.setProperty('--left-content-x', '232px');
+      root.style.setProperty('--left-content-x','232px');
+      root.style.setProperty('--side-rail-inner-x','58px');
+      root.style.setProperty('--side-rail-rock-inner-x','20px');
+      if(!root.classList.contains('viewport-mobile')&&!root.classList.contains('viewport-tablet')) {
+        const bounds=root.getBoundingClientRect();
+        const canvas=root.querySelector('.canvas-frame');
+        const pixelRatio=window.devicePixelRatio||1;
+        const centerX=Math.round(((canvas?canvas.clientWidth:bounds.width)/2)*pixelRatio)/pixelRatio;
+        root.style.setProperty('--ps-center-line-x',centerX+'px');
+        const nav=root.querySelector('.global-stage-nav');
+        const rail=root.querySelector('.phase-vertical-tag');
+        const occupiedRight=Math.max(0,nav?nav.getBoundingClientRect().right-bounds.left:0,rail?rail.getBoundingClientRect().right-bounds.left:0);
+        const start=occupiedRight+24;
+        const end=bounds.width/2-32;
+        const available=Math.max(0,end-start);
+        const textWidth=Math.min(600,available);
+        const originalTextX=start+(available-textWidth)/2;
+        const sharedLeft=(originalTextX+232)/2;
+        root.style.setProperty('--ps-left-text-x',sharedLeft+'px');
+        root.style.setProperty('--left-content-x',sharedLeft+'px');
+        root.style.setProperty('--ps-left-text-width',(textWidth*.9)+'px');
       }
     }
 
@@ -325,8 +604,13 @@ const phase01Queue = [
       if (isTransitioning) return;
       const prevSt = currentState;
       if (prevSt === st) return;
+      const storyFrame=document.getElementById('canvasFrame');
+      const storySnapshots=captureStoryTransition(storyFrame,st,prevSt);
 
       currentState = st;
+      document.getElementById('canvasFrame').dataset.psState = typeof st === 'number' ? 'page' : st === 'default' ? 'default' : 'intro';
+      if(typeof st === 'number') selectedPages[0]=st;
+      updateCardControls(1,st);
       
 
       const wrapper = document.getElementById('canvasViewportWrapper');
@@ -389,10 +673,14 @@ const phase01Queue = [
         }
         renderPage(st, prevSt, dir);
       }
+      finishStoryTransition(storyFrame,1,st,prevSt,storySnapshots);
     }
 
     let currentSentenceIndex = null;
     let cardRoles = { main: 0, sub: 1, spare: 2 };
+
+    // Each phase independently suppresses its preview at the final page.
+    let hasNextCard = true;
 
     function setSlotState(slotIdx, state) {
       const slot = document.getElementById(`cardSlot${slotIdx}`);
@@ -405,7 +693,7 @@ const phase01Queue = [
       } else if (state === 'sub') {
         slot.style.transformOrigin = 'top left';
         slot.style.transform = 'translate(var(--card-sub-x), var(--card-sub-y)) scale(var(--card-sub-scale))';
-        slot.style.opacity = 'var(--card-sub-opacity)';
+        slot.style.opacity = hasNextCard ? 'var(--card-sub-opacity)' : '0';
         slot.style.zIndex = '3';
         slot.style.pointerEvents = 'none';
       } else if (state === 'out-left') {
@@ -425,6 +713,7 @@ const phase01Queue = [
     function resetCardSlots(pageNum) {
       const p = (typeof pageNum === 'number' && pageNum >= 1 && pageNum <= 8) ? pageNum : 1;
       const pageData = phase01Pages[p - 1];
+      hasNextCard = p < phase01Pages.length;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
 
       cardRoles = { main: 0, sub: 1, spare: 2 };
@@ -462,6 +751,7 @@ const phase01Queue = [
       isTransitioning = true;
       const isMobile = document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
       const toData = phase01Pages[toPage - 1];
+      hasNextCard = toPage < phase01Pages.length;
 
       if (isMobile) {
         // 手機端：雙槽位橫向推移 (無疊加、無閃現)
@@ -484,7 +774,7 @@ const phase01Queue = [
         slotNext.style.transform = 'translateX(0)';
         slotNext.style.opacity = '1';
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           slotMain.style.transition = 'none';
           slotNext.style.transition = 'none';
           const temp = cardRoles.main;
@@ -508,7 +798,7 @@ const phase01Queue = [
         setSlotState(cardRoles.spare, 'sub-enter');
         slotSpare.offsetWidth; // reflow
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         slotSub.style.transition = `transform ${ease}, opacity ${ease}`;
         slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -520,7 +810,7 @@ const phase01Queue = [
         // slotSpare 滑入次要位置
         setSlotState(cardRoles.spare, 'sub');
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           slotMain.style.transition = 'none';
           slotSub.style.transition = 'none';
           slotSpare.style.transition = 'none';
@@ -529,7 +819,7 @@ const phase01Queue = [
           cardRoles.sub = cardRoles.spare;
           cardRoles.spare = oldMain;
           isTransitioning = false;
-        }, 540);
+        }, 300);
 
       } else { // Prev
         // spare 預載上一張主圖，並就位在左側隱藏
@@ -539,7 +829,7 @@ const phase01Queue = [
         slotSpare.style.zIndex = '5';
         slotSpare.offsetWidth; // reflow
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         slotSub.style.transition = `opacity 0.35s ease`;
         slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -551,7 +841,7 @@ const phase01Queue = [
         // slotSub 淡出
         slotSub.style.opacity = '0';
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           slotMain.style.transition = 'none';
           slotSub.style.transition = 'none';
           slotSpare.style.transition = 'none';
@@ -561,7 +851,7 @@ const phase01Queue = [
           cardRoles.main = cardRoles.spare;
           cardRoles.spare = oldSub;
           isTransitioning = false;
-        }, 540);
+        }, 300);
       }
     }
 
@@ -590,40 +880,22 @@ const phase01Queue = [
     }
 
     function measureTrackFinalHeight(text, word, isMobile, isTablet) {
-      const measureDiv = document.createElement('div');
-      measureDiv.className = 'sentence-track is-active';
-      measureDiv.style.visibility = 'hidden';
-      measureDiv.style.position = 'absolute';
-      measureDiv.style.left = '0';
-      measureDiv.style.top = '0';
-      measureDiv.style.transition = 'none';
-      if (isMobile) {
-        measureDiv.style.width = '315px';
-        measureDiv.style.fontSize = 'var(--mob-quote-size, 19px)';
-        measureDiv.style.lineHeight = 'var(--mob-quote-lh, 1.8)';
-        measureDiv.style.letterSpacing = '1.6px';
-        measureDiv.style.paddingLeft = '18px';
-      } else if (isTablet) {
-        measureDiv.style.width = '574px';
-        measureDiv.style.fontSize = 'var(--tab-quote-size, 24px)';
-        measureDiv.style.lineHeight = 'var(--tab-quote-lh, 1.8)';
-        measureDiv.style.letterSpacing = '2.4px';
-        measureDiv.style.paddingLeft = '25px';
-      } else {
-        measureDiv.style.width = '438px';
-        measureDiv.style.fontSize = 'var(--quote-font-size, 28px)';
-        measureDiv.style.lineHeight = 'var(--quote-line-height, 1.8)';
-        measureDiv.style.letterSpacing = 'var(--quote-letter-spacing, 2.8px)';
-        measureDiv.style.paddingLeft = '25px';
-      }
-      measureDiv.innerHTML = makeHighlightHTML(text, word);
-      document.body.appendChild(measureDiv);
-      const h = measureDiv.offsetHeight || 102;
-      document.body.removeChild(measureDiv);
-      return h;
+      const frames=Array.from(root.querySelectorAll('.canvas-frame'));
+      const frame=frames.find(f=>f.querySelector('.sentence-track.is-active')?.textContent===text) || frames[0];
+      const stage=frame.querySelector('.main-text-stage');
+      const probe=document.createElement('div');
+      probe.className='sentence-track is-active';
+      probe.style.cssText='position:absolute!important;visibility:hidden;transition:none!important;transform:none!important';
+      probe.style.width=stage.offsetWidth+'px';
+      probe.innerHTML=makeHighlightHTML(text,word);
+      stage.appendChild(probe);
+      const height=probe.offsetHeight;
+      probe.remove();return height;
     }
 
     function renderQuotes(toPage, fromPage, direction) {
+      // Keep desktop text at the same quote anchor on every card.
+      if(window.innerWidth>=1200)direction=0;
       initSentenceTracks();
 
       const toData = phase01Pages[toPage - 1];
@@ -649,9 +921,9 @@ const phase01Queue = [
       if (isMobile) {
         const baseH = 80;
         const pushY = Math.max(0, activeH - baseH);
-        document.documentElement.style.setProperty('--mob-quote-push-y', `${pushY}px`);
+        document.getElementById('canvasFrame').style.setProperty('--mob-quote-push-y', `${pushY}px`);
       } else {
-        document.documentElement.style.setProperty('--mob-quote-push-y', '0px');
+        document.getElementById('canvasFrame').style.setProperty('--mob-quote-push-y', '0px');
       }
 
       function updateLineNote() {
@@ -741,6 +1013,7 @@ const phase01Queue = [
         const newTrack = document.getElementById(`sentenceTrack${targetSentenceIdx}`);
 
         if (oldTrack) {
+          animateLeavingQuote(oldTrack);oldTrack.classList.remove('is-active');oldTrack.classList.add('is-past');
           oldTrack.style.transition = 'transform 0.42s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.35s ease';
           oldTrack.style.transform = direction === 1 ? 'translateY(-36px)' : 'translateY(36px)';
           oldTrack.style.opacity = '0';
@@ -757,6 +1030,7 @@ const phase01Queue = [
           newTrack.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease';
           newTrack.style.transform = 'translateY(0px)';
           newTrack.style.opacity = '1';
+          if(isMobile)newTrack.animate([{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
 
           updateLineNote();
         }
@@ -1328,6 +1602,7 @@ const phase01Queue = [
     // - JS 只負責「目前停在哪個錨點」→ 套用對應狀態，不再攔截 wheel / touch
     // =========================================================================
     let programmaticScroll = false;
+
     let programmaticTimer = null;
 
     
@@ -1384,14 +1659,17 @@ const phase01Queue = [
       const top = anchorScrollTop(anchor);
       if (Math.abs(window.scrollY - top) < 2) return;
       programmaticScroll = true;
+      document.documentElement.classList.remove('ps-snap');
       clearTimeout(programmaticTimer);
       programmaticTimer = setTimeout(endProgrammaticScroll, 900);
       window.scrollTo({ top, behavior: behavior || 'smooth' });
     }
 
     function endProgrammaticScroll() {
+
       clearTimeout(programmaticTimer);
       programmaticScroll = false;
+      lastManualStateTime=0;
       applyAnchorState();
     }
 
@@ -1411,7 +1689,9 @@ const phase01Queue = [
     // 依「目前停靠的錨點」套用狀態 (冪等：狀態已正確則不動作)
     let applyRetryTimer = null;
     function applyAnchorState() {
-      if (Date.now() < lastManualStateTime) return;
+      if(programmaticScroll)return;
+
+      if(Date.now()<lastManualStateTime){clearTimeout(applyRetryTimer);applyRetryTimer=setTimeout(applyAnchorState,lastManualStateTime-Date.now()+20);return;}
       const a = getNearestAnchor();
       if (!a) return;
       const phase = a.dataset.phase;
@@ -1429,7 +1709,8 @@ const phase01Queue = [
           ok = currentState === '01-1';
         } else if (kind === 'page') {
           // 已在某分頁 (例如手動翻到 03) 就保留，不強制回 01
-          if (typeof currentState !== 'number') setState(1);
+          if(isMobileView()&&currentState==='default')setState('01-1');
+          else if (typeof currentState !== 'number') setState(selectedPages[0]);
           ok = typeof currentState === 'number';
         }
       } else if (phase === '2') {
@@ -1441,7 +1722,8 @@ const phase01Queue = [
           if (currentPhase2State !== '02-1') setPhase2State('02-1');
           ok = currentPhase2State === '02-1';
         } else if (kind === 'page') {
-          if (typeof currentPhase2State !== 'number') setPhase2State(1);
+          if(isMobileView()&&currentPhase2State==='default')setPhase2State('02-1');
+          else if (typeof currentPhase2State !== 'number') setPhase2State(selectedPages[1]);
           ok = typeof currentPhase2State === 'number';
         }
       } else if (phase === '3') {
@@ -1453,7 +1735,8 @@ const phase01Queue = [
           if (currentPhase3State !== '03-1') setPhase3State('03-1');
           ok = currentPhase3State === '03-1';
         } else if (kind === 'page') {
-          if (typeof currentPhase3State !== 'number') setPhase3State(1);
+          if(isMobileView()&&currentPhase3State==='default')setPhase3State('03-1');
+          else if (typeof currentPhase3State !== 'number') setPhase3State(selectedPages[2]);
           ok = typeof currentPhase3State === 'number';
         }
       } else if (phase === '4') {
@@ -1465,7 +1748,8 @@ const phase01Queue = [
           if (currentPhase4State !== '04-1') setPhase4State('04-1');
           ok = currentPhase4State === '04-1';
         } else if (kind === 'page') {
-          if (typeof currentPhase4State !== 'number') setPhase4State(1);
+          if(isMobileView()&&currentPhase4State==='default')setPhase4State('04-1');
+          else if (typeof currentPhase4State !== 'number') setPhase4State(selectedPages[3]);
           ok = typeof currentPhase4State === 'number';
         }
       }
@@ -1487,15 +1771,15 @@ const phase01Queue = [
       requestAnimationFrame(() => {
         scrollTicking = false;
         const rootRect = root.getBoundingClientRect();
-        const isInView = (rootRect.bottom > navHeight && rootRect.top < window.innerHeight);
+        const isInView = (rootRect.bottom > navHeight + 2 && rootRect.top <= navHeight + 2);
         root.classList.toggle('is-inview', isInView);
 
         // 控制 html.ps-snap：僅在進入此區塊範圍時開啟吸附
         const inSnapZone = (rootRect.top <= navHeight + 10 && rootRect.bottom >= window.innerHeight - 10);
-        document.documentElement.classList.toggle('ps-snap', inSnapZone && !programmaticScroll);
+        document.documentElement.classList.remove('ps-snap');
 
         if (!programmaticScroll && isInView) {
-          applyAnchorState();
+          clearTimeout(scrollSettleTimer);scrollSettleTimer=setTimeout(applyAnchorState,180);
         }
         updateCenterLineScroll();
         syncGlobalFixedComponentsPosition();
@@ -1637,19 +1921,10 @@ const phase01Queue = [
         }
         if (fill3) fill3.style.transform = `scaleY(${p3})`;
 
-        // Phase 4 線段
-        let p4 = 0;
-        if (st <= s3Page) {
-          p4 = 0;
-        } else if (st < s4Home) {
-          const progressToHome = (st - s3Page) / (s4Home - s3Page);
-          p4 = Math.min(Math.max(progressToHome * diamondRatio, 0), diamondRatio);
-        } else if (st <= s4Page) {
-          const progressToPage = (st - s4Home) / (s4Page - s4Home);
-          p4 = Math.min(Math.max(diamondRatio + progressToPage * (1 - diamondRatio), diamondRatio), 1);
-        } else {
-          p4 = 1;
-        }
+        // The final connector ends at Phase 4's diamond (y=656).
+        // Fill this shortened segment while travelling from Phase 3 to Phase 4.
+        const p4 = st <= s3Page ? 0 : st >= s4Home ? 1
+          : Math.min(Math.max((st - s3Page) / (s4Home - s3Page), 0), 1);
         if (fill4) fill4.style.transform = `scaleY(${p4})`;
       }
 
@@ -1677,62 +1952,46 @@ const phase01Queue = [
 
     // 平板與手機端：卡片左右滑動換頁 (Pointer & Touch Swipe)
     function setupCardSwipeGestures() {
-      function attachSwipe(elemId, onNext, onPrev) {
-        const el = document.getElementById(elemId);
-        if (!el) return;
-
-        let startX = 0;
-        let startY = 0;
-        let isTracking = false;
-        let startTime = 0;
-
-        el.addEventListener('pointerdown', (e) => {
-          if (e.pointerType === 'mouse' && e.button !== 0) return;
-          isTracking = true;
-          startX = e.clientX;
-          startY = e.clientY;
-          startTime = Date.now();
+      const next=[nextPage,nextPage2,nextPage3,nextPage4],prev=[prevPage,prevPage2,prevPage3,prevPage4];
+      for(let phase=1;phase<=4;phase++){
+        const el=document.getElementById('cardsStackContainer'+(phase===1?'':phase));
+        if(!el)continue;
+        let gesture=null;
+        el.querySelectorAll('img').forEach(img=>{img.draggable=false;});
+        el.addEventListener('dragstart',event=>event.preventDefault());
+        el.addEventListener('pointerdown',event=>{
+          if(event.isPrimary===false || gesture || (event.pointerType==='mouse'&&event.button!==0))return;
+          if(event.target.closest('button,a'))return;
+          gesture={id:event.pointerId,x:event.clientX,y:event.clientY,axis:null};
+          el.setPointerCapture(event.pointerId);
         });
-
-        el.addEventListener('pointerup', (e) => {
-          if (!isTracking) return;
-          isTracking = false;
-          const dx = e.clientX - startX;
-          const dy = e.clientY - startY;
-          const dt = Date.now() - startTime;
-
-          // 水平位移大於等於 40px，且水平位移明顯大於垂直位移，時間在 750ms 內
-          if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) * 1.2 && dt < 750) {
-            lastManualStateTime = Date.now() + 600;
-            if (dx < 0) {
-              onNext();
-            } else {
-              onPrev();
-            }
+        el.addEventListener('pointermove',event=>{
+          if(!gesture||gesture.id!==event.pointerId)return;
+          const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;
+          if(!gesture.axis&&Math.max(Math.abs(dx),Math.abs(dy))>=10)gesture.axis=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';
+          if(gesture.axis==='x'){el.classList.add('is-dragging');if(event.cancelable)event.preventDefault();}
+        });
+        function finish(event,cancelled){
+          if(!gesture||gesture.id!==event.pointerId)return;
+          const g=gesture;gesture=null;el.classList.remove('is-dragging');
+          if(el.hasPointerCapture(event.pointerId))el.releasePointerCapture(event.pointerId);
+          if(cancelled)return;
+          const dx=event.clientX-g.x,dy=event.clientY-g.y;
+          const threshold=Math.max(24,Math.min(64,el.getBoundingClientRect().width*0.12));
+          if(g.axis!=='y'&&Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.2){
+            const state=[currentState,currentPhase2State,currentPhase3State,currentPhase4State][phase-1];
+            const count=[8,3,4,4][phase-1];
+            if(typeof state==='number'&& (dx<0?state<count:state>1))(dx<0?next:prev)[phase-1]();
           }
-        });
-
-        el.addEventListener('pointercancel', () => {
-          isTracking = false;
-        });
+        }
+        el.addEventListener('pointerup',event=>finish(event,false));
+        el.addEventListener('pointercancel',event=>finish(event,true));
+        el.addEventListener('lostpointercapture',event=>finish(event,true));
       }
-
-      attachSwipe('cardsStackContainer', nextPage, prevPage);
-      attachSwipe('cardsStackContainer2', nextPage2, prevPage2);
-      attachSwipe('cardsStackContainer3', nextPage3, prevPage3);
-      attachSwipe('cardsStackContainer4', nextPage4, prevPage4);
     }
-
-    const stageContainer = document.querySelector('.viewport-stage');
-    if (stageContainer) {
-      // 方案 A：不再攔截 wheel / touch，滾動交給原生 scroll-snap，只監聽滾動結果
-      stageContainer.addEventListener('scroll', handleStageScroll, { passive: true });
-      stageContainer.addEventListener('scrollend', () => {
-        if (programmaticScroll) endProgrammaticScroll(); else applyAnchorState();
-      });
-    }
-    window.addEventListener('scroll', updateCenterLineScroll, { passive: true });
-    window.addEventListener('resize', syncGlobalFixedComponentsPosition, { passive: true });
+    window.addEventListener('scrollend',()=>{clearTimeout(scrollSettleTimer);if(programmaticScroll)endProgrammaticScroll();else applyAnchorState();},{passive:true});
+    window.addEventListener('wheel',event=>{if(programmaticScroll&&!event.defaultPrevented)endProgrammaticScroll();},{passive:true});
+    window.addEventListener('pointerdown',()=>{if(programmaticScroll)endProgrammaticScroll();},{passive:true});
 
     function initSentenceTracks2() {
       const wrapper = document.getElementById('sentenceTracksWrapper2');
@@ -1753,8 +2012,13 @@ const phase01Queue = [
       if (isTransitioning2) return;
       const prevSt = currentPhase2State;
       if (prevSt === st) return;
+      const storyFrame=document.getElementById('sectionPhase02');
+      const storySnapshots=captureStoryTransition(storyFrame,st,prevSt);
 
       currentPhase2State = st;
+      document.getElementById('sectionPhase02').dataset.psState = typeof st === 'number' ? 'page' : st === 'default' ? 'default' : 'intro';
+      if(typeof st === 'number') selectedPages[1]=st;
+      updateCardControls(2,st);
 
       const wrapper = document.getElementById('canvasViewportWrapper');
       if (wrapper) wrapper.classList.toggle('state-intro-p2', st === '02-1');
@@ -1815,9 +2079,12 @@ const phase01Queue = [
         }
         renderPage2(st, prevSt, dir);
       }
+      finishStoryTransition(storyFrame,2,st,prevSt,storySnapshots);
     }
 
     function renderQuotes2(toPage, fromPage, direction = 0) {
+      // Keep desktop text at the same quote anchor on every card.
+      if(window.innerWidth>=1200)direction=0;
       initSentenceTracks2();
       const toData = phase02Pages[toPage - 1];
       const targetSentenceIdx = toData.sentenceIndex;
@@ -1839,9 +2106,9 @@ const phase01Queue = [
       if (isMobile) {
         const baseH = 80;
         const pushY = Math.max(0, activeH - baseH);
-        document.documentElement.style.setProperty('--mob-quote-push-y', `${pushY}px`);
+        document.getElementById('sectionPhase02').style.setProperty('--mob-quote-push-y', `${pushY}px`);
       } else {
-        document.documentElement.style.setProperty('--mob-quote-push-y', '0px');
+        document.getElementById('sectionPhase02').style.setProperty('--mob-quote-push-y', '0px');
       }
 
       function updateLineNote() {
@@ -1931,6 +2198,7 @@ const phase01Queue = [
         const newTrack = document.getElementById(`sentenceTrack2_${targetSentenceIdx}`);
 
         if (oldTrack) {
+          animateLeavingQuote(oldTrack);oldTrack.classList.remove('is-active');oldTrack.classList.add('is-past');
           oldTrack.style.transition = 'transform 0.42s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.35s ease';
           oldTrack.style.transform = direction === 1 ? 'translateY(-36px)' : 'translateY(36px)';
           oldTrack.style.opacity = '0';
@@ -1947,6 +2215,7 @@ const phase01Queue = [
           newTrack.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease';
           newTrack.style.transform = 'translateY(0px)';
           newTrack.style.opacity = '1';
+          if(isMobile)newTrack.animate([{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
 
           updateLineNote();
         }
@@ -1975,6 +2244,9 @@ const phase01Queue = [
       updateUpcomingQueue(true);
     }
 
+    // Each phase independently suppresses its preview at the final page.
+    let hasNextCard2 = true;
+
     function setSlotState2(slotIdx, state) {
       const slot = document.getElementById(`cardSlot${slotIdx}_2`);
       if (!slot) return;
@@ -1986,7 +2258,7 @@ const phase01Queue = [
       } else if (state === 'sub') {
         slot.style.transformOrigin = 'top left';
         slot.style.transform = 'translate(var(--card-sub-x), var(--card-sub-y)) scale(var(--card-sub-scale))';
-        slot.style.opacity = 'var(--card-sub-opacity)';
+        slot.style.opacity = hasNextCard2 ? 'var(--card-sub-opacity)' : '0';
         slot.style.zIndex = '3';
         slot.style.pointerEvents = 'none';
       } else if (state === 'out-left') {
@@ -2006,6 +2278,7 @@ const phase01Queue = [
     function resetCardSlots2(pageNum) {
       const p = (typeof pageNum === 'number' && pageNum >= 1 && pageNum <= 3) ? pageNum : 1;
       const pageData = phase02Pages[p - 1];
+      hasNextCard2 = p < phase02Pages.length;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
 
       cardRoles2 = { main: 0, sub: 1, spare: 2 };
@@ -2046,6 +2319,7 @@ const phase01Queue = [
       isTransitioning2 = true;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
       const toData = phase02Pages[toPage - 1];
+      hasNextCard2 = toPage < phase02Pages.length;
 
       if (isMobile) {
         // 手機端：雙槽位橫向推移 (無疊加、無閃現)
@@ -2075,7 +2349,7 @@ const phase01Queue = [
           slotNext.style.opacity = '1';
         }
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotNext) slotNext.style.transition = 'none';
           const temp = cardRoles2.main;
@@ -2100,7 +2374,7 @@ const phase01Queue = [
           slotSpare.offsetWidth; // reflow
         }
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         if (slotMain) slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSub) slotSub.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSpare) slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -2112,7 +2386,7 @@ const phase01Queue = [
         // slotSpare 滑入次要位置
         setSlotState2(cardRoles2.spare, 'sub');
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotSub) slotSub.style.transition = 'none';
           if (slotSpare) slotSpare.style.transition = 'none';
@@ -2121,7 +2395,7 @@ const phase01Queue = [
           cardRoles2.sub = cardRoles2.spare;
           cardRoles2.spare = oldMain;
           isTransitioning2 = false;
-        }, 540);
+        }, 300);
 
       } else { // Prev
         if (imgSpare) imgSpare.src = toData.img;
@@ -2132,7 +2406,7 @@ const phase01Queue = [
           slotSpare.offsetWidth; // reflow
         }
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         if (slotMain) slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSub) slotSub.style.transition = `opacity 0.35s ease`;
         if (slotSpare) slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -2141,7 +2415,7 @@ const phase01Queue = [
         setSlotState2(cardRoles2.spare, 'main');
         if (slotSub) slotSub.style.opacity = '0';
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotSub) slotSub.style.transition = 'none';
           if (slotSpare) slotSpare.style.transition = 'none';
@@ -2152,7 +2426,7 @@ const phase01Queue = [
           cardRoles2.main = cardRoles2.spare;
           cardRoles2.spare = oldSub;
           isTransitioning2 = false;
-        }, 540);
+        }, 300);
       }
     }
 
@@ -2274,8 +2548,13 @@ const phase01Queue = [
       if (isTransitioning3) return;
       const prevSt = currentPhase3State;
       if (prevSt === st) return;
+      const storyFrame=document.getElementById('sectionPhase03');
+      const storySnapshots=captureStoryTransition(storyFrame,st,prevSt);
 
       currentPhase3State = st;
+      document.getElementById('sectionPhase03').dataset.psState = typeof st === 'number' ? 'page' : st === 'default' ? 'default' : 'intro';
+      if(typeof st === 'number') selectedPages[2]=st;
+      updateCardControls(3,st);
 
       const wrapper = document.getElementById('canvasViewportWrapper');
       if (wrapper) wrapper.classList.toggle('state-intro-p3', st === '03-1');
@@ -2335,9 +2614,12 @@ const phase01Queue = [
         }
         renderPage3(st, prevSt, dir);
       }
+      finishStoryTransition(storyFrame,3,st,prevSt,storySnapshots);
     }
 
     function renderQuotes3(toPage, fromPage, direction = 0) {
+      // Keep desktop text at the same quote anchor on every card.
+      if(window.innerWidth>=1200)direction=0;
       initSentenceTracks3();
       const toData = phase03Pages[toPage - 1];
       const targetSentenceIdx = toData.sentenceIndex;
@@ -2359,9 +2641,9 @@ const phase01Queue = [
       if (isMobile) {
         const baseH = 80;
         const pushY = Math.max(0, activeH - baseH);
-        document.documentElement.style.setProperty('--mob-quote-push-y', `${pushY}px`);
+        document.getElementById('sectionPhase03').style.setProperty('--mob-quote-push-y', `${pushY}px`);
       } else {
-        document.documentElement.style.setProperty('--mob-quote-push-y', '0px');
+        document.getElementById('sectionPhase03').style.setProperty('--mob-quote-push-y', '0px');
       }
 
       function updateLineNote() {
@@ -2451,6 +2733,7 @@ const phase01Queue = [
         const newTrack = document.getElementById(`sentenceTrack3_${targetSentenceIdx}`);
 
         if (oldTrack) {
+          animateLeavingQuote(oldTrack);oldTrack.classList.remove('is-active');oldTrack.classList.add('is-past');
           oldTrack.style.transition = 'transform 0.42s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.35s ease';
           oldTrack.style.transform = direction === 1 ? 'translateY(-36px)' : 'translateY(36px)';
           oldTrack.style.opacity = '0';
@@ -2467,6 +2750,7 @@ const phase01Queue = [
           newTrack.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease';
           newTrack.style.transform = 'translateY(0px)';
           newTrack.style.opacity = '1';
+          if(isMobile)newTrack.animate([{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
 
           updateLineNote();
         }
@@ -2495,6 +2779,9 @@ const phase01Queue = [
       updateUpcomingQueue(true);
     }
 
+    // Each phase independently suppresses its preview at the final page.
+    let hasNextCard3 = true;
+
     function setSlotState3(slotIdx, state) {
       const slot = document.getElementById(`cardSlot${slotIdx}_3`);
       if (!slot) return;
@@ -2506,7 +2793,7 @@ const phase01Queue = [
       } else if (state === 'sub') {
         slot.style.transformOrigin = 'top left';
         slot.style.transform = 'translate(var(--card-sub-x), var(--card-sub-y)) scale(var(--card-sub-scale))';
-        slot.style.opacity = 'var(--card-sub-opacity)';
+        slot.style.opacity = hasNextCard3 ? 'var(--card-sub-opacity)' : '0';
         slot.style.zIndex = '3';
         slot.style.pointerEvents = 'none';
       } else if (state === 'out-left') {
@@ -2526,6 +2813,7 @@ const phase01Queue = [
     function resetCardSlots3(pageNum) {
       const p = (typeof pageNum === 'number' && pageNum >= 1 && pageNum <= 4) ? pageNum : 1;
       const pageData = phase03Pages[p - 1];
+      hasNextCard3 = p < phase03Pages.length;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
 
       cardRoles3 = { main: 0, sub: 1, spare: 2 };
@@ -2566,6 +2854,7 @@ const phase01Queue = [
       isTransitioning3 = true;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
       const toData = phase03Pages[toPage - 1];
+      hasNextCard3 = toPage < phase03Pages.length;
 
       if (isMobile) {
         const slotMain = document.getElementById(`cardSlot${cardRoles3.main}_3`);
@@ -2594,7 +2883,7 @@ const phase01Queue = [
           slotNext.style.opacity = '1';
         }
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotNext) slotNext.style.transition = 'none';
           const temp = cardRoles3.main;
@@ -2618,7 +2907,7 @@ const phase01Queue = [
           slotSpare.offsetWidth; // reflow
         }
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         if (slotMain) slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSub) slotSub.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSpare) slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -2627,7 +2916,7 @@ const phase01Queue = [
         setSlotState3(cardRoles3.sub, 'main');
         setSlotState3(cardRoles3.spare, 'sub');
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotSub) slotSub.style.transition = 'none';
           if (slotSpare) slotSpare.style.transition = 'none';
@@ -2636,7 +2925,7 @@ const phase01Queue = [
           cardRoles3.sub = cardRoles3.spare;
           cardRoles3.spare = oldMain;
           isTransitioning3 = false;
-        }, 540);
+        }, 300);
 
       } else { // Prev
         if (imgSpare) imgSpare.src = toData.img;
@@ -2647,7 +2936,7 @@ const phase01Queue = [
           slotSpare.offsetWidth; // reflow
         }
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         if (slotMain) slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSub) slotSub.style.transition = `opacity 0.35s ease`;
         if (slotSpare) slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -2656,7 +2945,7 @@ const phase01Queue = [
         setSlotState3(cardRoles3.spare, 'main');
         if (slotSub) slotSub.style.opacity = '0';
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotSub) slotSub.style.transition = 'none';
           if (slotSpare) slotSpare.style.transition = 'none';
@@ -2667,7 +2956,7 @@ const phase01Queue = [
           cardRoles3.main = cardRoles3.spare;
           cardRoles3.spare = oldSub;
           isTransitioning3 = false;
-        }, 540);
+        }, 300);
       }
     }
 
@@ -2789,8 +3078,13 @@ const phase01Queue = [
       if (isTransitioning4) return;
       const prevSt = currentPhase4State;
       if (prevSt === st) return;
+      const storyFrame=document.getElementById('sectionPhase04');
+      const storySnapshots=captureStoryTransition(storyFrame,st,prevSt);
 
       currentPhase4State = st;
+      document.getElementById('sectionPhase04').dataset.psState = typeof st === 'number' ? 'page' : st === 'default' ? 'default' : 'intro';
+      if(typeof st === 'number') selectedPages[3]=st;
+      updateCardControls(4,st);
 
       const wrapper = document.getElementById('canvasViewportWrapper');
       if (wrapper) wrapper.classList.toggle('state-intro-p4', st === '04-1');
@@ -2850,9 +3144,12 @@ const phase01Queue = [
         }
         renderPage4(st, prevSt, dir);
       }
+      finishStoryTransition(storyFrame,4,st,prevSt,storySnapshots);
     }
 
     function renderQuotes4(toPage, fromPage, direction = 0) {
+      // Keep desktop text at the same quote anchor on every card.
+      if(window.innerWidth>=1200)direction=0;
       initSentenceTracks4();
       const toData = phase04Pages[toPage - 1];
       const targetSentenceIdx = toData.sentenceIndex;
@@ -2874,9 +3171,9 @@ const phase01Queue = [
       if (isMobile) {
         const baseH = 80;
         const pushY = Math.max(0, activeH - baseH);
-        document.documentElement.style.setProperty('--mob-quote-push-y', `${pushY}px`);
+        document.getElementById('sectionPhase04').style.setProperty('--mob-quote-push-y', `${pushY}px`);
       } else {
-        document.documentElement.style.setProperty('--mob-quote-push-y', '0px');
+        document.getElementById('sectionPhase04').style.setProperty('--mob-quote-push-y', '0px');
       }
 
       function updateLineNote() {
@@ -2966,6 +3263,7 @@ const phase01Queue = [
         const newTrack = document.getElementById(`sentenceTrack4_${targetSentenceIdx}`);
 
         if (oldTrack) {
+          animateLeavingQuote(oldTrack);oldTrack.classList.remove('is-active');oldTrack.classList.add('is-past');
           oldTrack.style.transition = 'transform 0.42s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.35s ease';
           oldTrack.style.transform = direction === 1 ? 'translateY(-36px)' : 'translateY(36px)';
           oldTrack.style.opacity = '0';
@@ -2982,6 +3280,7 @@ const phase01Queue = [
           newTrack.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.45s ease';
           newTrack.style.transform = 'translateY(0px)';
           newTrack.style.opacity = '1';
+          if(isMobile)newTrack.animate([{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
 
           updateLineNote();
         }
@@ -3010,6 +3309,9 @@ const phase01Queue = [
       updateUpcomingQueue(true);
     }
 
+    // Each phase independently suppresses its preview at the final page.
+    let hasNextCard4 = true;
+
     function setSlotState4(slotIdx, state) {
       const slot = document.getElementById(`cardSlot${slotIdx}_4`);
       if (!slot) return;
@@ -3021,7 +3323,7 @@ const phase01Queue = [
       } else if (state === 'sub') {
         slot.style.transformOrigin = 'top left';
         slot.style.transform = 'translate(var(--card-sub-x), var(--card-sub-y)) scale(var(--card-sub-scale))';
-        slot.style.opacity = 'var(--card-sub-opacity)';
+        slot.style.opacity = hasNextCard4 ? 'var(--card-sub-opacity)' : '0';
         slot.style.zIndex = '3';
         slot.style.pointerEvents = 'none';
       } else if (state === 'out-left') {
@@ -3041,6 +3343,7 @@ const phase01Queue = [
     function resetCardSlots4(pageNum) {
       const p = (typeof pageNum === 'number' && pageNum >= 1 && pageNum <= 4) ? pageNum : 1;
       const pageData = phase04Pages[p - 1];
+      hasNextCard4 = p < phase04Pages.length;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
 
       cardRoles4 = { main: 0, sub: 1, spare: 2 };
@@ -3081,6 +3384,7 @@ const phase01Queue = [
       isTransitioning4 = true;
       const isMobile = document.getElementById('canvasViewportWrapper') && document.getElementById('canvasViewportWrapper').classList.contains('viewport-mobile');
       const toData = phase04Pages[toPage - 1];
+      hasNextCard4 = toPage < phase04Pages.length;
 
       if (isMobile) {
         const slotMain = document.getElementById(`cardSlot${cardRoles4.main}_4`);
@@ -3109,7 +3413,7 @@ const phase01Queue = [
           slotNext.style.opacity = '1';
         }
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotNext) slotNext.style.transition = 'none';
           const temp = cardRoles4.main;
@@ -3133,7 +3437,7 @@ const phase01Queue = [
           slotSpare.offsetWidth; // reflow
         }
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         if (slotMain) slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSub) slotSub.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSpare) slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -3142,7 +3446,7 @@ const phase01Queue = [
         setSlotState4(cardRoles4.sub, 'main');
         setSlotState4(cardRoles4.spare, 'sub');
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotSub) slotSub.style.transition = 'none';
           if (slotSpare) slotSpare.style.transition = 'none';
@@ -3151,7 +3455,7 @@ const phase01Queue = [
           cardRoles4.sub = cardRoles4.spare;
           cardRoles4.spare = oldMain;
           isTransitioning4 = false;
-        }, 540);
+        }, 300);
 
       } else { // Prev
         if (imgSpare) imgSpare.src = toData.img;
@@ -3162,7 +3466,7 @@ const phase01Queue = [
           slotSpare.offsetWidth; // reflow
         }
 
-        const ease = '0.52s cubic-bezier(0.25, 1, 0.5, 1)';
+        const ease = '0.28s cubic-bezier(0.25, 1, 0.5, 1)';
         if (slotMain) slotMain.style.transition = `transform ${ease}, opacity ${ease}`;
         if (slotSub) slotSub.style.transition = `opacity 0.35s ease`;
         if (slotSpare) slotSpare.style.transition = `transform ${ease}, opacity ${ease}`;
@@ -3171,7 +3475,7 @@ const phase01Queue = [
         setSlotState4(cardRoles4.spare, 'main');
         if (slotSub) slotSub.style.opacity = '0';
 
-        setTimeout(() => {
+        queueCardAnimation(() => {
           if (slotMain) slotMain.style.transition = 'none';
           if (slotSub) slotSub.style.transition = 'none';
           if (slotSpare) slotSpare.style.transition = 'none';
@@ -3182,7 +3486,7 @@ const phase01Queue = [
           cardRoles4.main = cardRoles4.spare;
           cardRoles4.spare = oldSub;
           isTransitioning4 = false;
-        }, 540);
+        }, 300);
       }
     }
 
@@ -3283,13 +3587,55 @@ const phase01Queue = [
     }
 
     
+    // A shared side rail follows the same chapter and detail state as tablet.
+
+    function setupDesktopHints() {
+      root.querySelectorAll('.reel-nav-buttons button').forEach(b=>b.addEventListener('click',()=>b.classList.remove('ps-next-hint')));
+    }
+
+    function setupDesktopSideRail() {
+      const wrapper=document.createElement('div'); wrapper.className='desktop-shared-rail'; wrapper.setAttribute('aria-hidden','true');
+      const rock=document.createElement('img'); rock.className='desktop-shared-rock'; rock.alt='';
+      const label=document.createElement('div'); label.className='desktop-shared-label'; wrapper.append(rock,label); root.append(wrapper);
+      const names=['DISCOVER','REFINE','ELEVATE','SHINE']; let scheduled=false;
+      function update(){scheduled=false;const anchors=getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');if(!anchors.length)return;
+        const active=anchors.reduce((best,a)=>Math.abs(anchorScrollTop(a)-scrollY)<Math.abs(anchorScrollTop(best)-scrollY)?a:best,anchors[0]);
+        const n=Number(active.dataset.phase), frame=root.querySelectorAll('.canvas-frame')[n-1], detail=frame?.dataset.psState==='page';
+        const source=frame?.querySelector('.side-rock-icon');if(source&&rock.getAttribute('src')!==source.getAttribute('src'))rock.src=source.getAttribute('src');
+        label.textContent='PHASE '+String(n).padStart(2,'0')+'-'+names[n-1];wrapper.classList.toggle('is-detail',detail);
+        const entry=anchors[0].getBoundingClientRect().top, last=anchors[anchors.length-1].getBoundingClientRect().top;
+        const exit=Math.min(0,last-navHeight);wrapper.style.top=(Math.max(navHeight,entry)+exit)+'px';
+        wrapper.classList.toggle('is-visible',root.getBoundingClientRect().bottom>navHeight && entry<innerHeight && last<innerHeight+root.getBoundingClientRect().height);
+      }
+      const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(update)}};
+      addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});const stateObserver=new MutationObserver(schedule);root.querySelectorAll('.canvas-frame').forEach(frame=>stateObserver.observe(frame,{attributes:true,attributeFilter:['data-ps-state']}));schedule();
+    }
+
+    function setupDesktopPaging() {
+      let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY;
+      const list=()=>getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
+      const positions=()=>list().map(anchorScrollTop);
+      const nearest=p=>p.reduce((b,y,i)=>Math.abs(y-scrollY)<Math.abs(p[b]-scrollY)?i:b,0);
+      const eligible=(p,d)=>p.length && ((scrollY>=p[0]-2&&scrollY<=p[p.length-1]+2)||(d<0&&scrollY>p[p.length-1]&&scrollY<=p[p.length-1]+innerHeight*.8));
+      function go(i){const a=list()[i];if(!a)return;moving=true;scrollToAnchor(a.dataset.phase,a.dataset.kind,matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');const start=performance.now();function done(){if((performance.now()-start>250&&Math.abs(scrollY-anchorScrollTop(a))<3)||performance.now()-start>1700){moving=false;return}requestAnimationFrame(done)}requestAnimationFrame(done)}
+      function step(d){const p=positions();if(!eligible(p,d))return false;if(scrollY<p[0]-2&&d>0){go(0);return true}if(scrollY>p[p.length-1]+2&&d<0){go(p.length-1);return true}const i=nearest(p)+d;if(i<0||i>=p.length)return false;go(i);return true}
+      addEventListener('wheel',e=>{if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0;reading=false},240);if(moving||(used&&!reading)){if(e.cancelable)e.preventDefault();return;}const frame=e.target.closest?.('.canvas-frame');if(canReadDesktopFrame(frame,d)){used=true;reading=true;return;}if(used||moving){if(e.cancelable)e.preventDefault();return}if((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0))return;if(e.cancelable)e.preventDefault();sum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);if(Math.abs(sum)>=45){used=step(Math.sign(sum));sum=0}},{passive:false,capture:true});
+      addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('button,a,input,select,textarea,[contenteditable="true"]')?{x:e.touches[0].clientX,y:e.touches[0].clientY,used:false}:null},{passive:true});
+      addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);const frame=e.target.closest?.('.canvas-frame');if(canReadDesktopFrame(frame,d)){touch.reading=true;return;}if(touch.reading){if(e.cancelable)e.preventDefault();return;}if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;if(!touch.used&&!moving&&((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(!touch.used&&!moving&&Math.abs(dy)>=55)touch.used=step(d)},{passive:false,capture:true});
+      addEventListener('touchend',()=>touch=null,{passive:true});addEventListener('touchcancel',()=>touch=null,{passive:true});
+      addEventListener('scroll',()=>{const now=scrollY,p=positions();if(!p.length){previous=now;return}const top=previous<p[0]-2&&now>=p[0]-2&&now>previous,bottom=previous>p[p.length-1]+2&&now<=p[p.length-1]+2&&now<previous;previous=now;if(moving||programmaticScroll||(!top&&!bottom))return;const i=top?0:p.length-1;used=true;if(touch)touch.used=true;clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0},top?120:300);scrollTo({top:p[i],behavior:'instant'});previous=p[i];if(!top)go(i)},{passive:true});
+    }
+
     window.addEventListener('scroll', handleWindowScroll, { passive: true });
-    window.addEventListener('resize', () => {
-      updateNavHeight();
-      updateResponsiveScale();
-    }, { passive: true });
+    window.addEventListener('resize',scheduleResponsiveLayout,{passive:true});
 
     // 初始化
+    prepareStoryContent();
+    setupDesktopPaging();
+    setupDesktopSideRail();
+    setupDesktopHints();
+    const controlsObserver=new ResizeObserver(()=>requestAnimationFrame(()=>root.querySelectorAll(".canvas-frame").forEach(positionMobileControls)));
+    root.querySelectorAll(".cards-stack-container,.card-caption-desc").forEach(el=>controlsObserver.observe(el));
     updateImageSources();
     updateNavHeight();
     updateResponsiveScale();
@@ -3297,6 +3643,7 @@ const phase01Queue = [
     initSentenceTracks2();
     initSentenceTracks3();
     initSentenceTracks4();
+    setupDesktopStorySurfaces();
     setupCardSwipeGestures();
     updateGlobalTopLeftBadge(1, false);
     updateCenterLineScroll();
@@ -3309,24 +3656,31 @@ const phase01Queue = [
 
     // 支援首頁點擊切換：點擊首頁主圖或文案亦可平滑展開分頁卡片
     const dv1 = document.getElementById('defaultVisual');
-    if (dv1) { dv1.style.cursor = 'pointer'; dv1.addEventListener('click', () => setState(1)); }
+    if (dv1) { dv1.style.cursor = 'pointer'; dv1.addEventListener('click', () => advanceHomeStory(1)); }
     const dc1 = document.getElementById('defaultContent');
-    if (dc1) { dc1.style.cursor = 'pointer'; dc1.addEventListener('click', () => setState(1)); }
+    if (dc1) { dc1.style.cursor = 'pointer'; dc1.addEventListener('click', () => advanceHomeStory(1)); }
 
     const dv2 = document.getElementById('defaultVisual2');
-    if (dv2) { dv2.style.cursor = 'pointer'; dv2.addEventListener('click', () => setPhase2State(1)); }
+    if (dv2) { dv2.style.cursor = 'pointer'; dv2.addEventListener('click', () => advanceHomeStory(2)); }
     const dc2 = document.getElementById('defaultContent2');
-    if (dc2) { dc2.style.cursor = 'pointer'; dc2.addEventListener('click', () => setPhase2State(1)); }
+    if (dc2) { dc2.style.cursor = 'pointer'; dc2.addEventListener('click', () => advanceHomeStory(2)); }
 
     const dv3 = document.getElementById('defaultVisual3');
-    if (dv3) { dv3.style.cursor = 'pointer'; dv3.addEventListener('click', () => setPhase3State(1)); }
+    if (dv3) { dv3.style.cursor = 'pointer'; dv3.addEventListener('click', () => advanceHomeStory(3)); }
     const dc3 = document.getElementById('defaultContent3');
-    if (dc3) { dc3.style.cursor = 'pointer'; dc3.addEventListener('click', () => setPhase3State(1)); }
+    if (dc3) { dc3.style.cursor = 'pointer'; dc3.addEventListener('click', () => advanceHomeStory(3)); }
 
     const dv4 = document.getElementById('defaultVisual4');
-    if (dv4) { dv4.style.cursor = 'pointer'; dv4.addEventListener('click', () => setPhase4State(1)); }
+    if (dv4) { dv4.style.cursor = 'pointer'; dv4.addEventListener('click', () => advanceHomeStory(4)); }
     const dc4 = document.getElementById('defaultContent4');
-    if (dc4) { dc4.style.cursor = 'pointer'; dc4.addEventListener('click', () => setPhase4State(1)); }
+    if (dc4) { dc4.style.cursor = 'pointer'; dc4.addEventListener('click', () => advanceHomeStory(4)); }
+
+    root.querySelectorAll('.canvas-frame').forEach(frame=>{if(!frame.dataset.psState)frame.dataset.psState='default';const tag=frame.querySelector('.phase-vertical-tag');if(tag)tag.classList.toggle('is-default',frame.dataset.psState!=='page');});
+    layoutReady=true;
+    const resizeObserver=new ResizeObserver(()=>scheduleResponsiveLayout());
+    resizeObserver.observe(root);
+    if(document.fonts)document.fonts.ready.then(scheduleResponsiveLayout);
+    if(window.visualViewport)window.visualViewport.addEventListener('resize',scheduleResponsiveLayout,{passive:true});
 
     // 匯出全域 API (支援行內 onclick 與外部控制)
     window.setState = setState;
@@ -3364,3 +3718,73 @@ const phase01Queue = [
       prev4: prevPage4
     };
 })();
+
+
+
+
+
+
+/* Shared desktop/tablet chapter scroll cue. */
+(()=>{
+ function init(){
+  if(document.getElementById('psScrollGuide'))return;
+  const cue=document.createElement('div');cue.id='psScrollGuide';cue.hidden=true;cue.setAttribute('aria-hidden','true');
+  cue.innerHTML='<span class="guide-arrow-box"><span class="guide-arrow"><i></i><b></b></span></span><span class="guide-label">scroll</span>';
+  document.body.append(cue);
+  const style=document.createElement('style');style.textContent=`
+   #psScrollGuide{position:fixed;z-index:40;width:40px;height:62px;box-sizing:border-box;border:1px solid #675d54;border-radius:999px;color:#675d54;pointer-events:none;display:flex;align-items:center;flex-direction:column;}
+   #psScrollGuide[hidden]{display:none!important;}
+   #psScrollGuide .guide-arrow-box{position:relative;width:14px;height:20px;margin-top:10px;overflow:hidden;display:flex;justify-content:center;}
+   #psScrollGuide .guide-arrow{position:absolute;top:0;width:8px;display:flex;flex-direction:column;align-items:center;animation:psGuideDown 3s cubic-bezier(.65,0,.35,1) infinite;}
+   #psScrollGuide i{width:1.2px;height:10px;background:currentColor;}
+   #psScrollGuide b{width:5px;height:5px;border-right:1.2px solid;border-bottom:1.2px solid;transform:rotate(45deg);margin-top:-4px;}
+   #psScrollGuide .guide-label{position:absolute;bottom:16px;font:500 9.5px/1 'Noto Sans TC',sans-serif;letter-spacing:.05em;}
+   #phase-mobile .hero>.scroll{display:none!important;}
+   @keyframes psGuideDown{0%{transform:translateY(-16px);opacity:0}25%{opacity:1}70%{opacity:1;transform:translateY(4px)}100%{opacity:0;transform:translateY(4px)}}
+   @media(max-width:767px),(min-width:1200px){#psScrollGuide{display:none!important;}}
+   @media(min-width:1200px){
+    #ps-root .has-progress-guide>.center-line-fill{transform:scaleY(1)!important;transition:none;clip-path:inset(0 0 calc(100% - var(--guide-start)) 0);}
+    #ps-root .has-progress-guide::after{content:'';position:absolute;top:var(--guide-start);bottom:0;left:0;width:2px;background:#987a6b;transform-origin:top;animation:psLineGuideFill 3s linear infinite;}
+   }
+   @keyframes psLineGuideFill{0%{transform:scaleY(0);opacity:1}90%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
+   @media(prefers-reduced-motion:reduce){#ps-root .has-progress-guide::after{animation:none;opacity:.6;}}
+   @media(prefers-reduced-motion:reduce){#psScrollGuide .guide-arrow{animation:none;}}
+  `;document.head.append(style);
+  let pending=false,idleTimer=null,idle=false,touching=false;
+  function movement(){idle=false;clearTimeout(idleTimer);cue.hidden=true;if(!touching)idleTimer=setTimeout(()=>{idle=true;schedule();},5000);schedule();}
+  addEventListener('touchstart',()=>{touching=true;movement();},{passive:true});
+  addEventListener('touchend',()=>{touching=false;movement();},{passive:true});
+  addEventListener('touchcancel',()=>{touching=false;movement();},{passive:true});
+  function update(){pending=false;
+   const desktop=innerWidth>=1200, root=document.querySelector(desktop?'#ps-root':'#phase-mobile');
+   if(innerWidth>=1200){cue.hidden=true;root?.querySelectorAll('.center-connecting-line').forEach(line=>{
+     const track=line.querySelector('.center-line-track'),diamond=line.querySelector('.center-line-diamond');if(!track||!diamond)return;
+     const start=Math.max(0,diamond.getBoundingClientRect().top+diamond.getBoundingClientRect().height/2-track.getBoundingClientRect().top);
+     track.style.setProperty('--guide-start',start+'px');track.classList.toggle('has-progress-guide',track.getBoundingClientRect().height>start+10);
+    });return;}
+   if(innerWidth<768||!root){cue.hidden=true;return;}
+   const header=document.querySelector('[data-phase-header],.site-header,.w-nav,header');
+   const measuredHeader=header&&['fixed','sticky'].includes(getComputedStyle(header).position)?Math.max(0,header.getBoundingClientRect().bottom):0;const head=desktop?(parseFloat(getComputedStyle(root).getPropertyValue('--ps-nav-h'))||measuredHeader):measuredHeader;
+   const bounds=root.getBoundingClientRect();
+   const panels=Array.from(root.querySelectorAll(desktop?'.canvas-frame':'.tablet-opening,.card'));
+   if(!panels.length){cue.hidden=true;return;}
+   const anchors=Array.from(root.querySelectorAll(desktop?'.snap-anchor':'.stack-anchor')).filter(a=>a.offsetParent!==null);
+   if(!anchors.length){cue.hidden=true;return;}
+   const anchor=anchors.reduce((best,a)=>Math.abs(a.getBoundingClientRect().top-head)<Math.abs(best.getBoundingClientRect().top-head)?a:best,anchors[0]);
+   const index=anchors.indexOf(anchor),active=desktop?panels[Number(anchor.dataset.phase)-1]:panels[index];
+   const fourth=desktop?active===panels[3]&&active.dataset.psState==='page':index===panels.length-1;
+   const firstOpening=index===0&&Math.abs(anchor.getBoundingClientRect().top-head)<8;
+   cue.hidden=bounds.top>head+2||bounds.bottom<=innerHeight-2||fourth||touching||(!firstOpening&&!idle);
+   if(desktop){const text=active.querySelector('.desktop-story-text,.default-content-box');const controls=active.querySelector('.reel-nav-buttons');const r=text?.getBoundingClientRect();const c=controls?.getBoundingClientRect();cue.style.left=(r?.left||200)+'px';cue.style.top=Math.min(innerHeight-70,Math.max(head+10,(c?.bottom||innerHeight-90)+12))+'px';}
+   else{cue.style.left=(bounds.left+bounds.width/2-20)+'px';cue.style.top=(innerHeight-86)+'px';}
+  }
+  function schedule(){if(!pending){pending=true;requestAnimationFrame(update);}}
+  addEventListener('scroll',movement,{passive:true});addEventListener('resize',schedule,{passive:true});
+  document.querySelectorAll('.canvas-frame').forEach(f=>{f.addEventListener('scroll',schedule,{passive:true});new MutationObserver(schedule).observe(f,{attributes:true,attributeFilter:['data-ps-state']});});
+  document.fonts.ready.then(schedule);schedule();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else requestAnimationFrame(init);
+})();
+
+
+
