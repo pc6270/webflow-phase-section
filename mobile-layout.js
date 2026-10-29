@@ -278,3 +278,22 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
 })();
 
 
+
+/* ZIYANG_BANNER_COLOR_BRIDGE_V2_20261030 */
+(()=>{
+ function installBannerColorBridge(){
+  if(innerWidth<768||document.getElementById('ps-banner-color-bridge-style'))return;
+  const root=document.getElementById('ps-root'),section=root?.closest('section');
+  let banner=section?.previousElementSibling;
+  while(banner&&(getComputedStyle(banner).display==='none'||banner.classList.contains('phone-only')||banner.getBoundingClientRect().height<1))banner=banner.previousElementSibling;
+  const opening=document.querySelector(innerWidth>=1200?'#canvasFrame':'#phase-mobile-01 .tablet-opening');
+  if(!banner||!opening)return;
+  let color='#faf7f2',host=banner;
+  while(host){const candidate=getComputedStyle(host).backgroundColor;if(candidate&&candidate!=='transparent'&&candidate!=='rgba(0, 0, 0, 0)'){color=candidate;break;}host=host.parentElement;}
+  document.querySelectorAll('.ps-banner-transition,.ps-section-transition,.ps-color-bridge').forEach(e=>e.remove());
+  const style=document.createElement('style');style.id='ps-banner-color-bridge-style';
+  style.textContent='.ps-color-bridge{position:absolute;inset:0 0 auto;height:clamp(180px,28vh,320px);z-index:2;pointer-events:none;background:linear-gradient(to bottom,var(--ps-banner-start) 0%,transparent 100%)}#phase-mobile #phase-mobile-01 .tablet-opening::before{background:none!important}';document.head.append(style);
+  const bridge=document.createElement('div');bridge.className='ps-color-bridge';bridge.setAttribute('aria-hidden','true');bridge.style.setProperty('--ps-banner-start',color);opening.prepend(bridge);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installBannerColorBridge,{once:true});else requestAnimationFrame(installBannerColorBridge);
+})();
