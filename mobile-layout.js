@@ -219,6 +219,12 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
 (()=>{
  function init(){
   if(document.getElementById('psScrollGuide'))return;
+  const section=document.getElementById('ps-root')?.closest('section');
+  const banner=section?.previousElementSibling;
+  if(banner&&banner.tagName==='SECTION'&&!banner.querySelector('.ps-banner-transition')){
+   if(getComputedStyle(banner).position==='static')banner.style.position='relative';
+   const blend=document.createElement('div');blend.className='ps-banner-transition';blend.setAttribute('aria-hidden','true');banner.append(blend);
+  }
   const cue=document.createElement('div');cue.id='psScrollGuide';cue.hidden=true;cue.setAttribute('aria-hidden','true');
   cue.innerHTML='<span class="guide-arrow-box"><span class="guide-arrow"><i></i><b></b></span></span><span class="guide-label">scroll</span>';
   document.body.append(cue);
@@ -231,6 +237,9 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
    #psScrollGuide b{width:5px;height:5px;border-right:1.2px solid;border-bottom:1.2px solid;transform:rotate(45deg);margin-top:-4px;}
    #psScrollGuide .guide-label{position:absolute;bottom:16px;font:500 9.5px/1 'Noto Sans TC',sans-serif;letter-spacing:.05em;}
    #phase-mobile .hero>.scroll{display:none!important;}
+   .ps-banner-transition{position:absolute;inset:auto 0 0;height:clamp(100px,16vh,180px);z-index:3;pointer-events:none;background:linear-gradient(to bottom,rgba(240,235,224,0) 0%,rgba(240,235,224,.35) 45%,#f0ebe0 100%);}
+   @media(min-width:768px) and (max-width:1199px){#phase-mobile #phase-mobile-01 .tablet-opening::before{background:linear-gradient(to bottom,#f0ebe0,transparent);}}
+   @media(max-width:767px){.ps-banner-transition{display:none;}}
    @keyframes psGuideDown{0%{transform:translateY(-16px);opacity:0}25%{opacity:1}70%{opacity:1;transform:translateY(4px)}100%{opacity:0;transform:translateY(4px)}}
    @media(max-width:767px),(min-width:1200px){#psScrollGuide{display:none!important;}}
    @media(min-width:1200px){
