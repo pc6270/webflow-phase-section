@@ -177,3 +177,6 @@
  #phase-mobile .tablet-opening>.intro{position:relative;z-index:3;isolation:isolate;}
  #phase-mobile .tablet-opening .curve{z-index:0;pointer-events:none;}
 }
+
+/* Honor the existing website back-to-top suspension. */
+html.phase-tablet-pager.snap-disabled{scroll-snap-type:none!important;}
