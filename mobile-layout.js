@@ -192,14 +192,25 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  const overlay=document.createElement('div');overlay.className='shared-chapter-overlay';overlay.innerHTML='<div class="hero-title"><div class="en"></div><h2></h2></div><div class="shared-quote-box"></div>';root.append(overlay);
  const title=overlay.querySelector('.hero-title'),box=overlay.querySelector('.shared-quote-box');
  let selected=-1,quoteText='',quoteHTML='',motion=[],frame=0;
+ const quoteGeometry=new WeakMap();
+ const pixel=value=>Math.round(value*(devicePixelRatio||1))/(devicePixelRatio||1);
+ function geometryFor(opening){
+  let value=quoteGeometry.get(opening);if(value)return value;
+  const heading=opening.querySelector('.hero-title'),quote=opening.querySelector('blockquote');
+  const r=heading.getBoundingClientRect(),p=opening.getBoundingClientRect(),q=quote.getBoundingClientRect();
+  value={left:pixel(r.left),width:pixel(r.width),titleTop:pixel(r.top-p.top),quoteTop:pixel(q.top-r.top)};
+  quoteGeometry.set(opening,value);return value;
+ }
+ function invalidateQuoteGeometry(){phases.forEach(phase=>quoteGeometry.delete(phase.querySelector('.tablet-opening')));schedule();}
+
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  function update(){frame=0;const header=pagingHeader();
  const ys=anchors.map(a=>a.getBoundingClientRect().top+scrollY-header);let panel=0;for(let i=1;i<ys.length;i++){if(scrollY>=(ys[i-1]+ys[i])/2)panel=i;else break}
  const phase=phases[Math.floor(panel/2)],detail=panel%2===1;
  // Measure the reserved original heading; hidden elements still keep their layout.
- const opening=phase.querySelector('.tablet-opening'),heading=opening.querySelector('.hero-title'),r=heading.getBoundingClientRect(),p=opening.getBoundingClientRect();
- const heroQuote=opening.querySelector('blockquote');const q=heroQuote.getBoundingClientRect();
- overlay.style.left=r.left+'px';overlay.style.width=r.width+'px';const entryTop=anchors[0].getBoundingClientRect().top;const lastPanel=phases.at(-1).querySelector('.card');const exitOffset=Math.min(0,lastPanel.getBoundingClientRect().top-header);const overlayTop=Math.max(header,entryTop)+r.top-p.top+exitOffset;overlay.style.top=overlayTop+'px';const nav=document.querySelector('#phase-mobile-nav');if(nav)nav.style.translate='0 '+exitOffset+'px';root.querySelectorAll('.fixed-tablet-rail,.fixed-tablet-rock').forEach(el=>el.style.translate='0 '+exitOffset+'px');box.style.top=(q.top-r.top)+'px';
+ const opening=phase.querySelector('.tablet-opening'),heading=opening.querySelector('.hero-title'),geometry=geometryFor(opening);
+ const heroQuote=opening.querySelector('blockquote');
+ overlay.style.left=geometry.left+'px';overlay.style.width=geometry.width+'px';const entryTop=anchors[0].getBoundingClientRect().top;const lastPanel=phases.at(-1).querySelector('.card');const exitOffset=Math.min(0,lastPanel.getBoundingClientRect().top-header);const overlayTop=pixel(Math.max(header,entryTop)+geometry.titleTop+exitOffset);overlay.style.top=overlayTop+'px';const nav=document.querySelector('#phase-mobile-nav');if(nav)nav.style.translate='0 '+exitOffset+'px';root.querySelectorAll('.fixed-tablet-rail,.fixed-tablet-rock').forEach(el=>el.style.translate='0 '+exitOffset+'px');box.style.top=geometry.quoteTop+'px';
  const bounds=root.getBoundingClientRect();overlay.style.display=bounds.top<innerHeight&&bounds.bottom>header?'block':'none';
  if(selected!==Math.floor(panel/2)){title.querySelector('.en').textContent=heading.querySelector('.en').textContent;title.querySelector('h2').textContent=heading.querySelector('h1').textContent;selected=Math.floor(panel/2)}
  const source=detail?phase.querySelector('.card>blockquote'):heroQuote;
@@ -210,7 +221,8 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  }else{const current=box.lastElementChild;if(current){current.classList.toggle('is-detail',detail);if(html!==quoteHTML){current.innerHTML=html;quoteHTML=html}}}
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(update)}
- root.classList.add('shared-chapter');const observer=new MutationObserver(schedule);phases.forEach(p=>observer.observe(p.querySelector('.card>blockquote'),{subtree:true,childList:true,characterData:true}));addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);document.fonts.ready.then(schedule);schedule();
+ root.classList.add('shared-chapter');const observer=new MutationObserver(schedule);phases.forEach(p=>observer.observe(p.querySelector('.card>blockquote'),{subtree:true,childList:true,characterData:true}));addEventListener('scroll',schedule,{passive:true});addEventListener('resize',invalidateQuoteGeometry);document.fonts.ready.then(invalidateQuoteGeometry);
+ const geometryObserver=new ResizeObserver(invalidateQuoteGeometry);phases.forEach(phase=>{const opening=phase.querySelector('.tablet-opening');geometryObserver.observe(opening.querySelector('.hero-title'));geometryObserver.observe(opening.querySelector('blockquote'));});schedule();
 })();
 
 }

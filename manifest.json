@@ -1,14 +1,5 @@
-[
-  {
-    "file": "ps-section.js",
-    "bytes": 190217,
-    "sha256": "20d67ada641497eb129d945365f2273f62d5ddb8d7a6d33146a346ca4a30af1b",
-    "changed": true
-  },
-  {
-    "file": "mobile-layout.js",
-    "bytes": 37227,
-    "sha256": "bf95fd843900357e2f2a402ba807f9b77c74905e41aec8a49f9f181f277f0e3a",
-    "changed": true
-  }
-]
+{
+  "file": "mobile-layout.js",
+  "sha256": "4ed02da9c15be9b8877dcd22e2bc68b8af5a65c89d65148019fed8740b1d9037",
+  "version": "tablet-quote-stable-20261030"
+}
