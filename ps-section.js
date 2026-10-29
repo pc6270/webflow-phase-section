@@ -3730,7 +3730,8 @@ const phase01Queue = [
  function init(){
   if(document.getElementById('psScrollGuide'))return;
   const section=document.getElementById('ps-root')?.closest('section');
-  const banner=section?.previousElementSibling;
+  let banner=section?.previousElementSibling;
+  while(banner&&(getComputedStyle(banner).display==='none'||banner.classList.contains('phone-only')||banner.getBoundingClientRect().height<1))banner=banner.previousElementSibling;
   if(banner&&banner.tagName==='SECTION'&&!banner.querySelector('.ps-banner-transition')){
    if(getComputedStyle(banner).position==='static')banner.style.position='relative';
    const blend=document.createElement('div');blend.className='ps-banner-transition';blend.setAttribute('aria-hidden','true');banner.append(blend);
