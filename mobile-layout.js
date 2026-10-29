@@ -206,7 +206,7 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  function update(){frame=0;const header=pagingHeader();
  const ys=anchors.map(a=>a.getBoundingClientRect().top+scrollY-header);let panel=0;for(let i=1;i<ys.length;i++){if(scrollY>=(ys[i-1]+ys[i])/2)panel=i;else break}
- const phase=phases[Math.floor(panel/2)],detail=panel%2===1;
+ const phase=phases[Math.floor(panel/2)],detail=panel%2===1;overlay.dataset.phase=String(Math.floor(panel/2));
  // Measure the reserved original heading; hidden elements still keep their layout.
  const opening=phase.querySelector('.tablet-opening'),heading=opening.querySelector('.hero-title'),geometry=geometryFor(opening);
  const heroQuote=opening.querySelector('blockquote');
@@ -308,4 +308,19 @@ if(matchMedia("(min-width:768px) and (max-width:1199px)").matches){
   const bridge=document.createElement('div');bridge.className='ps-color-bridge';bridge.setAttribute('aria-hidden','true');bridge.style.setProperty('--ps-banner-start',color);opening.prepend(bridge);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installBannerColorBridge,{once:true});else requestAnimationFrame(installBannerColorBridge);
+})();
+
+/* TABLET_FIRST_SECTION_REVEAL_90VH */
+(()=>{
+ if(!matchMedia('(min-width:768px) and (max-width:1199px)').matches)return;
+ const root=document.getElementById('phase-mobile');if(!root)return;
+ const style=document.createElement('style');style.textContent=
+ '#phase-mobile #phase-mobile-01 .tablet-opening{opacity:0;transition:opacity .6s ease-out}'+
+ '#phase-mobile .shared-chapter-overlay[data-phase="0"]{opacity:0;transition:opacity .6s ease-out}'+
+ '#phase-mobile.is-first-revealed #phase-mobile-01 .tablet-opening,#phase-mobile.is-first-revealed .shared-chapter-overlay[data-phase="0"]{opacity:1}'+
+ '@media(prefers-reduced-motion:reduce){#phase-mobile #phase-mobile-01 .tablet-opening,#phase-mobile .shared-chapter-overlay[data-phase="0"]{transition:none}}';document.head.append(style);
+ let queued=false,revealed=false;
+ function check(){queued=false;if(revealed)return;if(root.getBoundingClientRect().top<=innerHeight*.9){revealed=true;root.classList.add('is-first-revealed');removeEventListener('scroll',schedule);removeEventListener('resize',schedule);}}
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(check);}}
+ addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});schedule();
 })();
