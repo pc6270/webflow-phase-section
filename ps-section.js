@@ -237,11 +237,32 @@
       frame.style.setProperty('--ps-mobile-home-gap',Math.max(24,s.y-219)+'px');
     }
   }
+  function desktopTextMetrics(frame){
+    const story=frame._desktopStory;if(!story)return null;
+    const caption=frame.querySelector('.card-caption-desc'),style=getComputedStyle(caption);
+    const key=[innerWidth,innerHeight,story.surface.offsetWidth,caption.offsetWidth,style.font,style.letterSpacing,document.fonts.status].join(':');
+    if(story.metrics?.key===key)return story.metrics;
+    const phase=Array.from(root.querySelectorAll('.canvas-frame')).indexOf(frame)+1;
+    const pages=[phase01Pages,phase02Pages,phase03Pages,phase04Pages][phase-1],queue=desktopStoryData(phase);
+    const probe=document.createElement('div');probe.setAttribute('aria-hidden','true');
+    probe.style.cssText='position:absolute;visibility:hidden;pointer-events:none;left:0;top:0';frame.append(probe);
+    const measure=(className,text,width,extra)=>{
+      const node=document.createElement('div');node.className=className;node.textContent=text;
+      node.style.cssText='position:relative!important;inset:auto!important;transform:none!important;translate:none!important;display:block!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;visibility:hidden!important;transition:none!important;width:'+width+'px!important;'+extra;
+      probe.append(node);const h=node.offsetHeight;node.remove();return h;
+    };
+    const quoteHeights=queue.map(text=>measure('sentence-track is-active',text,story.surface.offsetWidth,'font-size:24px!important;font-weight:600!important;line-height:1.8!important;letter-spacing:2.8px!important;padding-left:22px!important;'));
+    const followHeights=queue.map(text=>measure('sentence-track is-upcoming',text,story.surface.offsetWidth,'font-size:16px!important;font-weight:500!important;line-height:1.6!important;letter-spacing:.48px!important;padding-left:0!important;'));
+    const captionHeight=Math.max(96,...pages.map(page=>measure('card-caption-desc',page.caption,caption.offsetWidth,'')));
+    const storyHeight=Math.max(...quoteHeights.map((h,i)=>h+28+followHeights.slice(i+1,i+3).reduce((total,v)=>total+v+12,0)));
+    probe.remove();return story.metrics={key,quoteHeight:Math.max(120,...quoteHeights),captionHeight,storyHeight};
+  }
   function calibrateDesktopFrame(frame){
     const story=frame.querySelector('.desktop-story-text');if(!story)return;
     const available=Math.max(240,innerHeight-navHeight),caption=frame.querySelector('.card-caption-desc'),rows=story.querySelectorAll('.sentence-track');
     const homeHeight=parseFloat(story.style.getPropertyValue('--ps-story-home-height'))||487;
-    const key=[innerWidth,available,homeHeight,caption?.offsetHeight,frame.querySelector('.cards-stack-container')?.offsetHeight].join(':');
+    const metrics=desktopTextMetrics(frame);
+    const key=[innerWidth,available,homeHeight,metrics?.key,frame.querySelector('.cards-stack-container')?.offsetHeight].join(':');
     if(frame.dataset.composeKey===key)return;frame.dataset.composeKey=key;
     const rect=frame.getBoundingClientRect(),offset=Number(frame.dataset.outerReadOffset)||0;
     const title=frame.querySelector('.section-title-box'),top=title.getBoundingClientRect().top-rect.top+offset;
@@ -249,10 +270,10 @@
     const number=frame.querySelector('.reel-page-indicator'),controls=frame.querySelector('.reel-nav-buttons');
     // Use stable layout dimensions, never positions inside an active animation.
     // Both parts share one centered envelope, including the lower controls.
-    const quoteHeight=Math.max(120,frame.querySelector('.sentence-track.is-active')?.offsetHeight||0);
+    const quoteHeight=metrics?.quoteHeight||120;
     const controlHeight=(number?.offsetHeight||100)+7.5+(controls?.offsetHeight||50)+28;
     const bottom=Math.max(story.offsetTop+homeHeight,visual.offsetTop+visual.offsetHeight,
-      cards.offsetTop+cards.offsetHeight+22+Math.max(96,caption?.offsetHeight||0),story.offsetTop+quoteHeight+controlHeight);
+      cards.offsetTop+cards.offsetHeight+22+(metrics?.captionHeight||96),story.offsetTop+Math.max(quoteHeight,metrics?.storyHeight||0)+controlHeight);
     if(controls)controls.style.setProperty('top',(bottom-(controls.offsetHeight||50))+'px','important');
     if(number)number.style.setProperty('top',(bottom-(controls?.offsetHeight||50)-7.5-number.offsetHeight)+'px','important');
     const span=bottom-title.offsetTop,desired=Math.max(24,(available-span)/2);
@@ -373,8 +394,19 @@
       story.line.style.height=(story.tagline.offsetHeight+10)+'px';
     }else{
       const active=story.rows.find(row=>row.classList.contains('is-active'));
-      if(active){active.dataset.storyFinalHeight=String(active.offsetHeight);story.line.style.height=(active.offsetHeight+10)+'px';}
-      story.rows.forEach(row=>row.setAttribute('aria-hidden',row.classList.contains('is-past')?'true':'false'));
+      if(active){
+        active.dataset.storyFinalHeight=String(active.offsetHeight);story.line.style.height=(active.offsetHeight+10)+'px';
+        let y=active.offsetHeight+28,remaining=2;
+        story.rows.forEach(row=>{
+          const show=row===active||(row.classList.contains('is-upcoming')&&remaining>0);
+          if(row.classList.contains('is-upcoming')){
+            if(show){row.style.transform='translateY('+y+'px)';row.style.opacity='.75';y+=row.offsetHeight+12;remaining--;}
+            else row.style.opacity='0';
+          }
+          row.setAttribute('aria-hidden',show?'false':'true');
+        });
+        story.stage.style.setProperty('--ps-detail-story-height',Math.ceil(y)+'px');
+      }
     }
     const canAnimate=animate&&before&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(canAnimate){
@@ -3669,7 +3701,7 @@ const phase01Queue = [
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
       let ownedPosition=null,ownedUntil=0,lastCancelable=true;
-      let gesturePeak=0,gestureLow=Infinity,risingSamples=0,gestureBegan=0,previousMagnitude=0;
+      let gesturePeak=0,gestureLow=Infinity,risingSamples=0,gestureBegan=0,previousMagnitude=0,previousDirection=0;
       function ownPosition(top){ownedPosition=top;ownedUntil=performance.now()+240;scrollTo({top,behavior:'instant'});}
       function releasePosition(){ownedPosition=null;ownedUntil=0;}
       addEventListener('pointerdown',releasePosition,{passive:true});
@@ -3740,11 +3772,12 @@ const phase01Queue = [
         if(!eligible(p,d)){releasePosition();return;}
         // Safari can mark momentum events non-cancelable. A later cancelable
         // event can start a new transaction without waiting for all tail events.
-        if(magnitude>previousMagnitude+2)risingSamples++;else risingSamples=0;
+        if(d===previousDirection&&magnitude>previousMagnitude+2)risingSamples++;else risingSamples=0;
+        previousDirection=d;
         gestureLow=Math.min(gestureLow,magnitude);
         const resumed=e.cancelable&&lastCancelable===false;
-        const deliberate=e.cancelable&&used&&now-gestureBegan>280&&risingSamples>=3&&
-          gestureLow<=gesturePeak*.18&&magnitude>=Math.max(32,gesturePeak*.65);
+        const deliberate=e.cancelable&&used&&now-gestureBegan>220&&risingSamples>=3&&
+          gestureLow<=Math.max(8,gesturePeak*.18)&&magnitude>=Math.max(12,gestureLow*2.5);
         const fresh=!lastWheelAt||gap>gestureIdle||resumed||deliberate;
         if(fresh){gestureBegan=now;gesturePeak=magnitude;gestureLow=magnitude;risingSamples=0;}
         else gesturePeak=Math.max(gesturePeak,magnitude);
@@ -3753,7 +3786,7 @@ const phase01Queue = [
         if(fresh){used=false;sum=0;reading=false;}
         clearTimeout(timer);
         if(moving){
-          if(fresh||sum){if(sum&&Math.sign(sum)!==d)sum=0;sum+=d*magnitude;if(Math.abs(sum)>=12){pendingDirection=d;sum=0;}}
+          if(fresh||sum){if(sum&&Math.sign(sum)!==d)sum=0;sum+=d*magnitude;if(Math.abs(sum)>=8){pendingDirection=d;sum=0;}}
           used=true;if(e.cancelable)e.preventDefault();return;
         }
         if(used&&!reading){if(e.cancelable)e.preventDefault();return;}
@@ -3772,7 +3805,7 @@ const phase01Queue = [
         if(e.cancelable)e.preventDefault();
         if(sum&&Math.sign(sum)!==d)sum=0;
         sum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
-        if(Math.abs(sum)>=12){used=step(d);sum=0;}
+        if(Math.abs(sum)>=8){used=step(d);sum=0;}
       },{passive:false,capture:true});
       addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('button,a,input,select,textarea,[contenteditable="true"]')?{x:e.touches[0].clientX,y:e.touches[0].clientY,used:false}:null},{passive:true});
       addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;const frame=e.target.closest?.('.canvas-frame'),canRead=canReadDesktopFrame(frame,d);if(!touch.used&&!moving&&!canRead&&((scrollY<=p[0]+2&&d<0)||(scrollY>=finalReadingEnd(p)-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(touch.used||Math.abs(dy)<55)return;touch.used=true;if(moving){pendingDirection=d;return}if(canRead){const a=getNearestAnchor(),start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;scrollTo({top:d>0?start+travel:start,behavior:'instant'});syncOuterReading();return}step(d)},{passive:false,capture:true});
