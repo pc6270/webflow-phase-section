@@ -8,6 +8,29 @@
   if (!root) return;
   if(window.PSLayout.mode!=='desktop')return;
 
+  // Opt-in diagnostics: no storage, network requests, or page text collection.
+  const pagingDebug=new URLSearchParams(location.search).get('ps-debug')==='1'?{events:[],counts:{},started:performance.now()}:null;
+  function recordPagingDebug(type,detail={}){
+    if(!pagingDebug)return;
+    pagingDebug.counts[type]=(pagingDebug.counts[type]||0)+1;
+    pagingDebug.events.push({t:Math.round(performance.now()-pagingDebug.started),type,y:Math.round(scrollY*10)/10,...detail});
+    if(pagingDebug.events.length>1200)pagingDebug.events.shift();
+  }
+  function setupPagingDiagnostics(){
+    if(!pagingDebug)return;
+    const panel=document.createElement('aside');panel.id='ps-paging-diagnostics';
+    panel.style.cssText='position:fixed;right:12px;top:104px;z-index:2147483647;padding:10px 12px;background:#fff;color:#232323;border:1px solid #987a6b;border-radius:8px;font:13px/1.5 system-ui;box-shadow:0 2px 12px #0002';
+    const title=document.createElement('div');title.textContent='滑動診斷（只在本機記錄）';
+    const save=document.createElement('button');save.type='button';save.textContent='匯出紀錄';
+    const reset=document.createElement('button');reset.type='button';reset.textContent='清除';reset.style.marginLeft='8px';
+    save.addEventListener('click',()=>{
+      const data={version:'nav-boundary-diagnostics-20261031',browser:navigator.userAgent,viewport:[innerWidth,innerHeight],counts:pagingDebug.counts,frames:Array.from(root.querySelectorAll('.canvas-frame')).map(f=>({id:f.id,state:f.dataset.psState,innerScroll:f.scrollTop})),events:pagingDebug.events.slice()};
+      const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+      const a=document.createElement('a');a.href=url;a.download='ziyang-safari-scroll-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    });
+    reset.addEventListener('click',()=>{pagingDebug.events=[];pagingDebug.counts={};pagingDebug.started=performance.now();recordPagingDebug('reset');});
+    panel.append(title,save,reset);document.body.append(panel);recordPagingDebug('ready');
+  }
   const ASSET_BASE = root.getAttribute('data-asset-base') || '';
   const ASSETS = {
     // ==========================================
@@ -1868,6 +1891,7 @@ const phase01Queue = [
         const rootRect = root.getBoundingClientRect();
         const isInView = (rootRect.bottom > navHeight + 2 && rootRect.top <= navHeight + 2);
         root.classList.toggle('is-inview', isInView);
+        updateDesktopNavBoundary(rootRect.bottom);
 
         // 控制 html.ps-snap：僅在進入此區塊範圍時開啟吸附
         const inSnapZone = (rootRect.top <= navHeight + 10 && rootRect.bottom >= window.innerHeight - 10);
@@ -1878,6 +1902,13 @@ const phase01Queue = [
         }
         updateCenterLineScroll();
       });
+    }
+
+    function updateDesktopNavBoundary(boundary){
+      const nav=root.querySelector('.global-stage-nav');if(!nav)return;
+      const shift=Math.min(0,boundary-innerHeight),value=String(Math.round(shift*2)/2);
+      if(nav.dataset.exitOffset===value)return;
+      nav.dataset.exitOffset=value;nav.style.translate='0 '+value+'px';
     }
 
     function updateGlobalNavActivePhase(phase) {
@@ -3735,6 +3766,7 @@ const phase01Queue = [
       const eligible=(p,d)=>!document.documentElement.classList.contains('snap-disabled')&&!document.querySelector('.site-header.is-menu-open')&&p.length && ((scrollY>=p[0]-2&&scrollY<=finalReadingEnd(p)+2)||(d<0&&scrollY>finalReadingEnd(p)&&scrollY<=finalReadingEnd(p)+innerHeight*.8));
       function go(i){
         const a=list()[i];if(!a)return;moving=true;
+        recordPagingDebug('go',{phase:a.dataset.phase,kind:a.dataset.kind});
         const phase=Number(a.dataset.phase),target=a.dataset.kind==='page'?selectedPages[phase-1]:'default';
         const origin=list()[nearest(positions())],samePhase=origin?.dataset.phase===a.dataset.phase;
         desktopPagingTarget=a;const start=performance.now();
@@ -3758,6 +3790,7 @@ const phase01Queue = [
             if(progress===1){
               ownPosition(anchorScrollTop(a));
               moving=false;desktopPagingTarget=null;
+              recordPagingDebug('land',{phase:a.dataset.phase,kind:a.dataset.kind});
               endProgrammaticScroll();
               if(pendingDirection){const d=pendingDirection;pendingDirection=0;used=step(d);}return;
             }requestAnimationFrame(done);
@@ -3771,6 +3804,7 @@ const phase01Queue = [
         if(document.documentElement.classList.contains('snap-disabled')||document.querySelector('.site-header.is-menu-open')||!p.length)return;
         const now=performance.now(),gap=now-lastWheelAt;
         const magnitude=Math.abs(e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+        recordPagingDebug('wheel',{dy:e.deltaY,dx:e.deltaX,cancelable:e.cancelable,gap:Math.round(gap),intentGap:Math.round(now-lastIntentAt),used,moving,reading,target:e.target?.id||e.target?.tagName||''});
         // Capture the boundary BEFORE native scrolling can overshoot into detail.
         // Consume the entering gesture, including its remaining momentum.
         if(d>0&&scrollY<p[0]-2&&scrollY>=p[0]-innerHeight*1.5){
@@ -3792,6 +3826,7 @@ const phase01Queue = [
           }else{restart.count++;restart.total+=magnitude;restart.last=magnitude;restart.at=now;}
           if(restart.count>=3&&restart.total>=24)fresh=true;
         }
+        recordPagingDebug('decision',{fresh,quiet,restart:restart?.count||0,used,moving,reading});
         if(fresh)restart=null;
         if(magnitude>2)lastIntentAt=now;
         lastWheelAt=now;
@@ -3827,6 +3862,7 @@ const phase01Queue = [
         const now=scrollY,p=positions();if(!p.length){previous=now;return}
         if(!moving&&!programmaticScroll&&ownedPosition!==null&&performance.now()<ownedUntil&&
           !document.documentElement.classList.contains('snap-disabled')&&!document.querySelector('.site-header.is-menu-open')&&Math.abs(now-ownedPosition)>.5){
+          recordPagingDebug('restore',{from:now,to:ownedPosition});
           scrollTo({top:ownedPosition,behavior:'instant'});previous=ownedPosition;return;
         }
         const top=previous<p[0]-2&&now>=p[0]-2&&now>previous;
@@ -3848,6 +3884,7 @@ const phase01Queue = [
     // 初始化
     prepareStoryContent();
     setupDesktopPaging();
+    setupPagingDiagnostics();
     setupDesktopSideRail();
     setupDesktopHints();
     setupOuterReading();
