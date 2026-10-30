@@ -3712,8 +3712,7 @@ const phase01Queue = [
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
-      let ownedPosition=null,ownedUntil=0,lastCancelable=true;
-      let gesturePeak=0,gestureLow=Infinity,risingSamples=0,renewalSamples=0,gestureBegan=0,previousMagnitude=0,previousDirection=0;
+      let ownedPosition=null,ownedUntil=0;
       function ownPosition(top){ownedPosition=top;ownedUntil=performance.now()+240;scrollTo({top,behavior:'instant'});}
       function releasePosition(){ownedPosition=null;ownedUntil=0;}
       addEventListener('pointerdown',releasePosition,{passive:true});
@@ -3776,27 +3775,18 @@ const phase01Queue = [
         // Consume the entering gesture, including its remaining momentum.
         if(d>0&&scrollY<p[0]-2&&scrollY>=p[0]-innerHeight*1.5){
           if(e.cancelable)e.preventDefault();
-          lastWheelAt=now;lastCancelable=e.cancelable;sum=0;reading=false;pendingDirection=0;
+          lastWheelAt=now;sum=0;reading=false;pendingDirection=0;
           const next=Math.min(p[0],scrollY+magnitude);
           if(next>=p[0]-2){used=true;go(0);}else{used=false;ownPosition(next);}
           return;
         }
         if(!eligible(p,d)){releasePosition();return;}
-        // Safari can mark momentum events non-cancelable. A later cancelable
-        // event can start a new transaction without waiting for all tail events.
-        const sameDirection=d===previousDirection;
-        if(sameDirection&&magnitude>previousMagnitude+2)risingSamples++;else risingSamples=0;
-        const renewalFloor=Math.max(8,Math.min(gestureLow,magnitude)*2.5);
-        if(sameDirection&&magnitude>=renewalFloor&&magnitude>=previousMagnitude*.85)renewalSamples++;else renewalSamples=0;
-        previousDirection=d;
-        gestureLow=Math.min(gestureLow,magnitude);
-        const resumed=e.cancelable&&lastCancelable===false;
-        const deliberate=e.cancelable&&used&&now-gestureBegan>220&&(risingSamples>=3||renewalSamples>=3)&&
-          gestureLow<=Math.max(8,gesturePeak*.18)&&magnitude>=Math.max(8,gestureLow*2.5);
-        const fresh=!lastWheelAt||gap>gestureIdle||resumed||deliberate;
-        if(fresh){gestureBegan=now;gesturePeak=magnitude;gestureLow=magnitude;risingSamples=0;renewalSamples=0;}
-        else gesturePeak=Math.max(gesturePeak,magnitude);
-        previousMagnitude=magnitude;lastCancelable=e.cancelable;lastWheelAt=now;
+        // Acceleration, plateaus and cancelable toggles can all occur inside
+        // one physical swipe. They must never rearm a consumed transaction.
+        // A quiet interval plus a cancelable event admits the next gesture;
+        // delayed non-cancelable momentum remains part of the old gesture.
+        const fresh=!lastWheelAt||(gap>gestureIdle&&e.cancelable!==false);
+        lastWheelAt=now;
         if(ownedPosition!==null)ownedUntil=now+240;
         if(fresh){used=false;sum=0;reading=false;}
         clearTimeout(timer);
