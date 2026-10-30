@@ -24,7 +24,7 @@
     const save=document.createElement('button');save.type='button';save.textContent='匯出紀錄';
     const reset=document.createElement('button');reset.type='button';reset.textContent='清除';reset.style.marginLeft='8px';
     save.addEventListener('click',()=>{
-      const data={version:'safari-trace-pause-fix-20261031',browser:navigator.userAgent,viewport:[innerWidth,innerHeight],counts:pagingDebug.counts,frames:Array.from(root.querySelectorAll('.canvas-frame')).map(f=>({id:f.id,state:f.dataset.psState,innerScroll:f.scrollTop})),events:pagingDebug.events.slice()};
+      const data={version:'safari-full-trace-cadence-fix-20261031',browser:navigator.userAgent,viewport:[innerWidth,innerHeight],counts:pagingDebug.counts,frames:Array.from(root.querySelectorAll('.canvas-frame')).map(f=>({id:f.id,state:f.dataset.psState,innerScroll:f.scrollTop})),events:pagingDebug.events.slice()};
       const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
       const a=document.createElement('a');a.href=url;a.download='ziyang-safari-scroll-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
@@ -3743,7 +3743,7 @@ const phase01Queue = [
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
-      let ownedPosition=null,ownedUntil=0,lastIntentAt=0,restart=null;
+      let ownedPosition=null,ownedUntil=0,lastIntentAt=0,restart=null,wheelCadence=16;
       function ownPosition(top){ownedPosition=top;ownedUntil=performance.now()+240;scrollTo({top,behavior:'instant'});}
       function releasePosition(){ownedPosition=null;ownedUntil=0;}
       addEventListener('pointerdown',releasePosition,{passive:true});
@@ -3820,17 +3820,19 @@ const phase01Queue = [
         // an acceleration/toggle alone. One delayed decaying event is ignored.
         const quiet=!lastIntentAt||now-lastIntentAt>gestureIdle;
         let fresh=!lastWheelAt||(gap>gestureIdle&&e.cancelable!==false);
-        // The captured Mac Safari trace separates lifted swipes by 95–99ms.
-        // A short pause only ARMS a candidate; three stable samples are still
-        // required. Continuous amplitude changes cannot open this gate.
-        if(!fresh&&used&&!reading&&gap>=80&&magnitude<=2)restart={direction:d,count:0,total:0,last:0,at:now};
+        // Detect a break relative to the device's event cadence, not a fixed
+        // 80ms cutoff. Full Safari recordings contain valid 61/75/77ms breaks.
+        // A tiny restart only arms a candidate; three stable samples confirm it.
+        const restartGap=Math.max(48,Math.min(80,wheelCadence*3));
+        if(gap>=4&&gap<=80)wheelCadence=wheelCadence*.75+gap*.25;
+        if(!fresh&&used&&!reading&&gap>=restartGap&&magnitude<=2)restart={direction:d,count:0,total:0,last:0,at:now};
         if(!fresh&&used&&!reading&&(restart||(quiet&&magnitude>=8))&&magnitude>=8){
           if(!restart||restart.direction!==d||now-restart.at>120||magnitude<restart.last*.85){
             restart={direction:d,count:1,total:magnitude,last:magnitude,at:now};
           }else{restart.count++;restart.total+=magnitude;restart.last=magnitude;restart.at=now;}
           if(restart.count>=3&&restart.total>=24)fresh=true;
         }
-        recordPagingDebug('decision',{fresh,quiet,restart:restart?.count||0,used,moving,reading});
+        recordPagingDebug('decision',{fresh,quiet,restartGap:Math.round(restartGap),restart:restart?.count||0,used,moving,reading});
         if(fresh)restart=null;
         if(magnitude>2)lastIntentAt=now;
         lastWheelAt=now;
