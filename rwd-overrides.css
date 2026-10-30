@@ -66,3 +66,17 @@ html:not([data-phase-layout="desktop"]) #phase-mobile .counter :is(.number,.slas
 
 /* Keep up to two following sentences below the active desktop quote. */
 html[data-phase-layout="desktop"] #ps-root .has-shared-story[data-ps-state="page"] .desktop-story-text .main-text-stage{height:var(--ps-detail-story-height,320px)!important;mask-image:linear-gradient(to bottom,#000 0px,#000 var(--ps-detail-fade-start,150px),transparent 100%)!important;-webkit-mask-image:linear-gradient(to bottom,#000 0px,#000 var(--ps-detail-fade-start,150px),transparent 100%)!important;overflow:hidden!important;}
+
+/* Phone chapter transitions belong to the full-viewport background. */
+html[data-phase-layout="phone"] #phase-mobile .phone-wide-background{background:linear-gradient(to bottom,var(--phone-entry-color,#faf7f2) 0px,#f0ebe0 180px,#f0ebe0 calc(100% - 180px),#faf7f2 100%);}
+html[data-phase-layout="phone"] #phase-mobile .phone-wide-background::before{background:linear-gradient(to bottom,var(--phone-entry-color,#faf7f2),transparent);}
+html[data-phase-layout="phone"] #phase-mobile .card{background:transparent!important;}
+html[data-phase-layout="phone"] #phase-mobile .card::after,
+html[data-phase-layout="phone"] #phase-mobile #phase-mobile-01::before{display:none!important;}
+/* Draw the landscape scroll outline at its final size, without scaling a thin border. */
+@media(orientation:landscape){
+html[data-phase-layout="phone"] #phase-mobile .intro>.scroll{display:flex;align-items:center;justify-content:center;min-height:62px;overflow:visible;}
+html[data-phase-layout="phone"] #phase-mobile .wf-scroll-indicator{width:32px;height:50px;min-height:50px;flex:none;margin:0;border-radius:16px;transform:none!important;-webkit-transform:none!important;overflow:visible;}
+html[data-phase-layout="phone"] #phase-mobile .wf-scroll-arrow-box{width:12px;height:16px;margin-top:8px;}
+html[data-phase-layout="phone"] #phase-mobile .wf-scroll-label{bottom:13px;font-size:8px;line-height:1;}
+}
