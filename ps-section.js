@@ -184,6 +184,8 @@
     handleWindowScroll();
   }
   function scheduleResponsiveLayout() {
+    getAnchors.cached=null;
+    syncGlobalFixedComponentsPosition.geometryKey=null;
     cancelAnimationFrame(layoutRaf);
     layoutRaf=requestAnimationFrame(updateResponsiveScale);
   }
@@ -307,7 +309,7 @@
     if(direction<0){const a=getNearestAnchor();if(a){const travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;return travel>0&&scrollY>anchorScrollTop(a)+2&&scrollY<=anchorScrollTop(a)+travel+2;}}return false;
   }
   function syncOuterReading(){
-    root.querySelectorAll('.canvas-frame').forEach(frame=>{const track=frame.parentElement,phase=Number(track.querySelector('.snap-anchor').dataset.phase),page=frame.dataset.psState==='page',anchor=getAnchor(phase,page?'page':'default'),travel=Number(track.dataset[page?'pageReadTravel':'homeReadTravel'])||0;const offset=Math.min(travel,Math.max(0,scrollY-anchorScrollTop(anchor)));frame.dataset.outerReadOffset=String(offset);frame.style.setProperty('--ps-read-offset',offset+'px');});
+    root.querySelectorAll('.canvas-frame').forEach(frame=>{const track=frame.parentElement,phase=Number(track.querySelector('.snap-anchor').dataset.phase),page=frame.dataset.psState==='page',anchor=getAnchor(phase,page?'page':'default'),travel=Number(track.dataset[page?'pageReadTravel':'homeReadTravel'])||0;const offset=Math.min(travel,Math.max(0,scrollY-anchorScrollTop(anchor)));if(frame.dataset.outerReadOffset!==String(offset)){frame.dataset.outerReadOffset=String(offset);frame.style.setProperty('--ps-read-offset',offset+'px');}});
   }
   function setupOuterReading(){
     let pending=false;function schedule(){if(!pending){pending=true;requestAnimationFrame(()=>{pending=false;syncOuterReading();});}}
@@ -406,6 +408,7 @@
           row.setAttribute('aria-hidden',show?'false':'true');
         });
         story.stage.style.setProperty('--ps-detail-story-height',Math.ceil(y)+'px');
+        story.stage.style.setProperty('--ps-detail-fade-start',(active.offsetHeight+28)+'px');
       }
     }
     const canAnimate=animate&&before&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -506,7 +509,7 @@
       const visual=frame.querySelector('.default-visual-box');
       if(visual){visual.animate([{opacity:0,transform:'translateX(-64px)'},{opacity:1,transform:'translateX(0)'}],{duration:1000,easing:'cubic-bezier(.25,1,.5,1)'});}
     }
-    if(layoutReady&&viewKind(state)!==viewKind(previous))scrollToAnchor(phase,viewKind(state),matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
+    if(layoutReady&&!desktopPagingTarget&&viewKind(state)!==viewKind(previous))scrollToAnchor(phase,viewKind(state),matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
   }
   function advanceHomeStory(phase){
     const state=phaseState(phase);if(typeof state==='number')return false;
@@ -653,6 +656,9 @@ const phase01Queue = [
     // 全域固定元件 (左上角原石標籤、左下角導航) 與當前畫布自適應同步
     
     function syncGlobalFixedComponentsPosition() {
+      const geometryKey=[root.clientWidth,innerHeight,navHeight,root.className].join(':');
+      if(syncGlobalFixedComponentsPosition.geometryKey===geometryKey)return;
+      syncGlobalFixedComponentsPosition.geometryKey=geometryKey;
       root.style.setProperty('--left-content-x','232px');
       root.style.setProperty('--side-rail-inner-x','58px');
       root.style.setProperty('--side-rail-rock-inner-x','20px');
@@ -678,6 +684,9 @@ const phase01Queue = [
     }
 
     function updateGlobalTopLeftBadge(activePhase, isPageActive) {
+      const key=activePhase+':'+isPageActive;
+      if(updateGlobalTopLeftBadge.key===key)return;
+      updateGlobalTopLeftBadge.key=key;
       syncGlobalFixedComponentsPosition();
     }
 
@@ -1694,7 +1703,8 @@ const phase01Queue = [
     }
 
     function getAnchors() {
-      return Array.from(document.querySelectorAll('.snap-anchor')).filter(a => a.offsetParent !== null);
+      if(!getAnchors.cached){getAnchors.cached=Array.from(document.querySelectorAll('.snap-anchor')).filter(a=>a.offsetParent!==null);requestAnimationFrame(()=>{getAnchors.cached=null;});}
+      return getAnchors.cached;
     }
 
     function getAnchor(phase, kind) {
@@ -1867,11 +1877,13 @@ const phase01Queue = [
           clearTimeout(scrollSettleTimer);scrollSettleTimer=setTimeout(applyAnchorState,180);
         }
         updateCenterLineScroll();
-        syncGlobalFixedComponentsPosition();
       });
     }
 
     function updateGlobalNavActivePhase(phase) {
+      const key=[phase,innerWidth,innerHeight,navHeight].join(':');
+      if(updateGlobalNavActivePhase.key===key)return;
+      updateGlobalNavActivePhase.key=key;
       const items = [
         document.getElementById('globalNavItem1'),
         document.getElementById('globalNavItem2'),
@@ -3701,7 +3713,7 @@ const phase01Queue = [
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
       let ownedPosition=null,ownedUntil=0,lastCancelable=true;
-      let gesturePeak=0,gestureLow=Infinity,risingSamples=0,gestureBegan=0,previousMagnitude=0,previousDirection=0;
+      let gesturePeak=0,gestureLow=Infinity,risingSamples=0,renewalSamples=0,gestureBegan=0,previousMagnitude=0,previousDirection=0;
       function ownPosition(top){ownedPosition=top;ownedUntil=performance.now()+240;scrollTo({top,behavior:'instant'});}
       function releasePosition(){ownedPosition=null;ownedUntil=0;}
       addEventListener('pointerdown',releasePosition,{passive:true});
@@ -3772,14 +3784,17 @@ const phase01Queue = [
         if(!eligible(p,d)){releasePosition();return;}
         // Safari can mark momentum events non-cancelable. A later cancelable
         // event can start a new transaction without waiting for all tail events.
-        if(d===previousDirection&&magnitude>previousMagnitude+2)risingSamples++;else risingSamples=0;
+        const sameDirection=d===previousDirection;
+        if(sameDirection&&magnitude>previousMagnitude+2)risingSamples++;else risingSamples=0;
+        const renewalFloor=Math.max(8,Math.min(gestureLow,magnitude)*2.5);
+        if(sameDirection&&magnitude>=renewalFloor&&magnitude>=previousMagnitude*.85)renewalSamples++;else renewalSamples=0;
         previousDirection=d;
         gestureLow=Math.min(gestureLow,magnitude);
         const resumed=e.cancelable&&lastCancelable===false;
-        const deliberate=e.cancelable&&used&&now-gestureBegan>220&&risingSamples>=3&&
-          gestureLow<=Math.max(8,gesturePeak*.18)&&magnitude>=Math.max(12,gestureLow*2.5);
+        const deliberate=e.cancelable&&used&&now-gestureBegan>220&&(risingSamples>=3||renewalSamples>=3)&&
+          gestureLow<=Math.max(8,gesturePeak*.18)&&magnitude>=Math.max(8,gestureLow*2.5);
         const fresh=!lastWheelAt||gap>gestureIdle||resumed||deliberate;
-        if(fresh){gestureBegan=now;gesturePeak=magnitude;gestureLow=magnitude;risingSamples=0;}
+        if(fresh){gestureBegan=now;gesturePeak=magnitude;gestureLow=magnitude;risingSamples=0;renewalSamples=0;}
         else gesturePeak=Math.max(gesturePeak,magnitude);
         previousMagnitude=magnitude;lastCancelable=e.cancelable;lastWheelAt=now;
         if(ownedPosition!==null)ownedUntil=now+240;

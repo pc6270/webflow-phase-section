@@ -65,4 +65,4 @@ html:not([data-phase-layout="desktop"]) #phase-mobile .counter,
 html:not([data-phase-layout="desktop"]) #phase-mobile .counter :is(.number,.slash,small){font-family:var(--font-display-en,'big-caslon-fb','Big Caslon CC','Big Caslon',serif)!important;}
 
 /* Keep up to two following sentences below the active desktop quote. */
-html[data-phase-layout="desktop"] #ps-root .has-shared-story[data-ps-state="page"] .desktop-story-text .main-text-stage{height:var(--ps-detail-story-height,320px)!important;mask-image:none!important;-webkit-mask-image:none!important;overflow:hidden!important;}
+html[data-phase-layout="desktop"] #ps-root .has-shared-story[data-ps-state="page"] .desktop-story-text .main-text-stage{height:var(--ps-detail-story-height,320px)!important;mask-image:linear-gradient(to bottom,#000 0px,#000 var(--ps-detail-fade-start,150px),transparent 100%)!important;-webkit-mask-image:linear-gradient(to bottom,#000 0px,#000 var(--ps-detail-fade-start,150px),transparent 100%)!important;overflow:hidden!important;}
