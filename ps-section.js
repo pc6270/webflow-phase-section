@@ -199,6 +199,7 @@
   const transitionOverlays=new Set();
   function prepareStoryContent(){
     root.querySelectorAll('.default-quote').forEach(q=>{q.innerHTML=q.innerHTML.replace(/<br\s*\/?>/gi,'');});
+    root.querySelectorAll('.default-paragraph br').forEach(br=>br.replaceWith(document.createTextNode('')));
     root.querySelectorAll('.default-content-box').forEach(box=>{
       if(box.querySelector('.default-paragraphs'))return;
       const copy=document.createElement('div');copy.className='default-paragraphs';
@@ -237,16 +238,24 @@
     }
   }
   function calibrateDesktopFrame(frame){
-    const page=frame.dataset.psState==='page',story=frame.querySelector('.desktop-story-text');if(!story)return;
+    const story=frame.querySelector('.desktop-story-text');if(!story)return;
     const available=Math.max(240,innerHeight-navHeight),caption=frame.querySelector('.card-caption-desc'),rows=story.querySelectorAll('.sentence-track');
-    const key=[innerWidth,available,page,caption?.offsetHeight,rows.length,rows[rows.length-1]?.offsetHeight,frame.querySelector('.desktop-story-tagline')?.offsetHeight].join(':');
+    const homeHeight=parseFloat(story.style.getPropertyValue('--ps-story-home-height'))||487;
+    const key=[innerWidth,available,homeHeight,caption?.offsetHeight,frame.querySelector('.cards-stack-container')?.offsetHeight].join(':');
     if(frame.dataset.composeKey===key)return;frame.dataset.composeKey=key;
     const rect=frame.getBoundingClientRect(),offset=Number(frame.dataset.outerReadOffset)||0;
-    const candidates=page?[frame.querySelector('.card-meta-header'),caption,frame.querySelector('.reel-nav-buttons')]:[frame.querySelector('.default-visual-box'),rows[rows.length-1]];
     const title=frame.querySelector('.section-title-box'),top=title.getBoundingClientRect().top-rect.top+offset;
-    const bottom=Math.max(...candidates.filter(Boolean).map(e=>e.getBoundingClientRect().bottom-rect.top+offset));
-    // Both parts share the same title baseline; body length must not move it.
-    const desired=Math.max(24,Math.min(80,available*.12));
+    const visual=frame.querySelector('.default-visual-box'),cards=frame.querySelector('.cards-stack-container');
+    const number=frame.querySelector('.reel-page-indicator'),controls=frame.querySelector('.reel-nav-buttons');
+    // Use stable layout dimensions, never positions inside an active animation.
+    // Both parts share one centered envelope, including the lower controls.
+    const quoteHeight=Math.max(120,frame.querySelector('.sentence-track.is-active')?.offsetHeight||0);
+    const controlHeight=(number?.offsetHeight||100)+7.5+(controls?.offsetHeight||50)+28;
+    const bottom=Math.max(story.offsetTop+homeHeight,visual.offsetTop+visual.offsetHeight,
+      cards.offsetTop+cards.offsetHeight+22+Math.max(96,caption?.offsetHeight||0),story.offsetTop+quoteHeight+controlHeight);
+    if(controls)controls.style.setProperty('top',(bottom-(controls.offsetHeight||50))+'px','important');
+    if(number)number.style.setProperty('top',(bottom-(controls?.offsetHeight||50)-7.5-number.offsetHeight)+'px','important');
+    const span=bottom-title.offsetTop,desired=Math.max(24,(available-span)/2);
     const saved=parseFloat(frame.style.getPropertyValue('--ps-compose-y'));
     const rendered=parseFloat(getComputedStyle(title).translate.split(/\s+/).at(-1));
     const current=Number.isFinite(saved)?saved:(Number.isFinite(rendered)?rendered+offset:-66);
@@ -259,7 +268,7 @@
     const bottom=el=>el&&el.getClientRects().length?el.getBoundingClientRect().bottom-rect.top+offset:0;
     const page=frame.dataset.psState==='page';
     if(!page){const rows=frame.querySelectorAll('.desktop-story-text .sentence-track');frame.dataset.homeExtent=String(Math.max(available,bottom(rows[rows.length-1])+32,bottom(frame.querySelector('.default-visual-box'))+24));}
-    else{const active=frame.querySelector('.sentence-track.is-active'),quote=active?active.offsetHeight:120;const number=frame.querySelector('.reel-page-indicator');const controls=(number?.offsetHeight||100)+50+7.5+28;frame.dataset.pageExtent=String(Math.max(available,bottom(frame.querySelector('.card-caption-desc'))+32,235+quote+controls));}
+    else{frame.dataset.pageExtent=String(Math.max(available,bottom(frame.querySelector('.card-caption-desc'))+32,bottom(frame.querySelector('.reel-nav-buttons'))+24));}
     const home=Math.max(available,Number(frame.dataset.homeExtent)||available),detail=Math.max(available,Number(frame.dataset.pageExtent)||available);
     frame.style.setProperty('--ps-short-content-height',Math.ceil(page?detail:home)+'px');frame.style.setProperty('--ps-short-number-height',(frame.querySelector('.reel-page-indicator')?.offsetHeight||100)+'px');
     frame.style.setProperty('--ps-short-quote-height',Math.max(160,(frame.querySelector('.sentence-track.is-active')?.offsetHeight||120)+64)+'px');
@@ -351,7 +360,8 @@
     story.line.style.transition='none';
     if(!page){
       const queue=desktopStoryData(phase);
-      let y=Math.max(story.tagline.offsetHeight+32,(parseFloat(getComputedStyle(story.copy).marginTop)||174)-4);
+      const homeGap=Math.min((parseFloat(getComputedStyle(story.copy).marginTop)||174)-4,Math.max(240,innerHeight-navHeight)*.18);
+      let y=Math.max(story.tagline.offsetHeight+32,homeGap);
       story.rows.forEach((row,index)=>{
         if(index&&story.groups[index]!==story.groups[index-1])y+=28;
         row.className='sentence-track is-story-body';row.textContent=queue[index];
@@ -3657,7 +3667,8 @@ const phase01Queue = [
     function setupDesktopPaging() {
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       let lastWheelMagnitude=0,lastWheelDirection=0,gestureStartedAt=0;
-      const gestureIdle=300;
+      let trough=Infinity,rising=0;
+      const gestureIdle=120;
       const list=()=>getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
       const positions=()=>list().map(anchorScrollTop);
       const nearest=p=>p.reduce((b,y,i)=>Math.abs(y-scrollY)<Math.abs(p[b]-scrollY)?i:b,0);
@@ -3676,14 +3687,22 @@ const phase01Queue = [
           }
           const committed=typeof target==='number'?typeof phaseState(phase)==='number':typeof phaseState(phase)!=='number';
           if(!committed&&performance.now()-start<1800){requestAnimationFrame(commit);return;}
-          scrollToAnchor(a.dataset.phase,a.dataset.kind,samePhase||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
+          const motionStart=performance.now(),from=scrollY;
+          const motionDuration=samePhase||matchMedia('(prefers-reduced-motion: reduce)').matches?0:320;
+          // Native smooth scrolling can be cancelled by the next wheel event.
+          // Own the short anchor motion; visual transitions run independently.
           function done(){
-            const settled=performance.now()-start>(matchMedia('(prefers-reduced-motion: reduce)').matches?120:1000);
-            if((settled&&Math.abs(scrollY-anchorScrollTop(a))<3)||performance.now()-start>2400){
+            if(document.documentElement.classList.contains('snap-disabled')){moving=false;desktopPagingTarget=null;pendingDirection=0;return;}
+            const progress=motionDuration?Math.min(1,(performance.now()-motionStart)/motionDuration):1;
+            const targetTop=anchorScrollTop(a),eased=1-Math.pow(1-progress,3);
+            scrollTo({top:progress===1?targetTop:from+(targetTop-from)*eased,behavior:'instant'});
+            if(progress===1){
+              scrollTo({top:anchorScrollTop(a),behavior:'instant'});
               moving=false;desktopPagingTarget=null;
+              endProgrammaticScroll();
               if(pendingDirection){const d=pendingDirection;pendingDirection=0;used=step(d);}return;
             }requestAnimationFrame(done);
-          }requestAnimationFrame(done);
+          }done();
         }commit();
       }
       function step(d){const p=positions();if(!eligible(p,d))return false;if(scrollY<p[0]-2&&d>0){go(0);return true}if(scrollY>p[p.length-1]+2&&d<0){go(p.length-1);return true}const current=getNearestAnchor(),index=list().indexOf(current),i=(index>=0?index:nearest(p))+d;if(i<0||i>=p.length)return false;go(i);return true}
@@ -3693,11 +3712,14 @@ const phase01Queue = [
         const now=performance.now(),gap=now-lastWheelAt;
         const magnitude=Math.abs(e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
         // An idle gap or a renewed strong impulse starts a gesture, not its tail.
-        const renewed=used&&now-gestureStartedAt>450&&magnitude>=18&&lastWheelMagnitude<=6&&magnitude>lastWheelMagnitude*3;
+        if(magnitude>lastWheelMagnitude+1)rising++;else rising=0;
+        trough=Math.min(trough,magnitude);
+        const renewed=used&&now-gestureStartedAt>160&&magnitude>=8&&magnitude-trough>=6&&
+          ((rising>=2&&magnitude>=trough*1.25)||(magnitude>=18&&magnitude>=lastWheelMagnitude*1.8));
         const reversed=d!==lastWheelDirection&&gap>70&&magnitude>=12;
         const fresh=!lastWheelAt||gap>gestureIdle||renewed||reversed;
         lastWheelAt=now;lastWheelMagnitude=magnitude;lastWheelDirection=d;
-        if(fresh)gestureStartedAt=now;
+        if(fresh){gestureStartedAt=now;trough=magnitude;rising=0;}
         if(fresh){used=false;sum=0;reading=false;}
         clearTimeout(timer);
         if(moving){
@@ -3723,7 +3745,7 @@ const phase01Queue = [
         if(Math.abs(sum)>=12){used=step(d);sum=0;}
       },{passive:false,capture:true});
       addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('button,a,input,select,textarea,[contenteditable="true"]')?{x:e.touches[0].clientX,y:e.touches[0].clientY,used:false}:null},{passive:true});
-      addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);const frame=e.target.closest?.('.canvas-frame');if(canReadDesktopFrame(frame,d)){touch.reading=true;return;}if(touch.reading){if(e.cancelable)e.preventDefault();return;}if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;if(!touch.used&&!moving&&((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(!touch.used&&!moving&&Math.abs(dy)>=55)touch.used=step(d)},{passive:false,capture:true});
+      addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;const frame=e.target.closest?.('.canvas-frame'),canRead=canReadDesktopFrame(frame,d);if(!touch.used&&!moving&&!canRead&&((scrollY<=p[0]+2&&d<0)||(scrollY>=finalReadingEnd(p)-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(touch.used||Math.abs(dy)<55)return;touch.used=true;if(moving){pendingDirection=d;return}if(canRead){const a=getNearestAnchor(),start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;scrollTo({top:d>0?start+travel:start,behavior:'instant'});syncOuterReading();return}step(d)},{passive:false,capture:true});
       addEventListener('touchend',()=>touch=null,{passive:true});addEventListener('touchcancel',()=>touch=null,{passive:true});
       addEventListener('scroll',()=>{const now=scrollY,p=positions();if(!p.length){previous=now;return}const top=previous<p[0]-2&&now>=p[0]-2&&now>previous,bottom=previous>p[p.length-1]+2&&now<=p[p.length-1]+2&&now<previous;previous=now;if(moving||programmaticScroll||document.documentElement.classList.contains('snap-disabled')||(!top&&!bottom))return;const i=top?0:p.length-1;used=true;if(touch)touch.used=true;clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0},top?120:300);scrollTo({top:p[i],behavior:'instant'});previous=p[i];if(!top)go(i)},{passive:true});
     }

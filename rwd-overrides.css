@@ -54,3 +54,7 @@ html[data-phase-layout="desktop"] #ps-root #centerConnectingLine4{top:0!importan
 html[data-phase-layout="desktop"] #ps-root .center-line-diamond-mid{top:calc(var(--ps-view-height)*656/1048)!important;}
 html[data-phase-layout="phone"] #phase-mobile .hero{background:transparent!important;}
 html[data-phase-layout="phone"] #phase-mobile .hero::before,html[data-phase-layout="phone"] #phase-mobile .hero::after{display:none!important;}
+
+/* Tablet copy: left aligned text, wrapping only at the available width. */
+html[data-phase-layout="tablet"] #phase-mobile :is(p,blockquote,.tablet-quote-track,.quote-followups),
+html[data-phase-layout="desktop"] #ps-root :is(.default-quote,.default-paragraph,.desktop-story-tagline,.sentence-track,.card-caption-desc){text-align:left!important;white-space:normal!important;text-wrap:wrap!important;}
