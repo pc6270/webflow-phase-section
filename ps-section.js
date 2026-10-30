@@ -24,7 +24,7 @@
     const save=document.createElement('button');save.type='button';save.textContent='匯出紀錄';
     const reset=document.createElement('button');reset.type='button';reset.textContent='清除';reset.style.marginLeft='8px';
     save.addEventListener('click',()=>{
-      const data={version:'safari-full-trace-cadence-fix-20261031',browser:navigator.userAgent,viewport:[innerWidth,innerHeight],counts:pagingDebug.counts,frames:Array.from(root.querySelectorAll('.canvas-frame')).map(f=>({id:f.id,state:f.dataset.psState,innerScroll:f.scrollTop})),events:pagingDebug.events.slice()};
+      const data={version:'safari-bidirectional-trace-fix-20261031',browser:navigator.userAgent,viewport:[innerWidth,innerHeight],counts:pagingDebug.counts,frames:Array.from(root.querySelectorAll('.canvas-frame')).map(f=>({id:f.id,state:f.dataset.psState,innerScroll:f.scrollTop})),events:pagingDebug.events.slice()};
       const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
       const a=document.createElement('a');a.href=url;a.download='ziyang-safari-scroll-diagnostics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
@@ -3825,7 +3825,7 @@ const phase01Queue = [
         // A tiny restart only arms a candidate; three stable samples confirm it.
         const restartGap=Math.max(48,Math.min(80,wheelCadence*3));
         if(gap>=4&&gap<=80)wheelCadence=wheelCadence*.75+gap*.25;
-        if(!fresh&&used&&!reading&&gap>=restartGap&&magnitude<=2)restart={direction:d,count:0,total:0,last:0,at:now};
+        if(!fresh&&used&&!reading&&gap>=restartGap&&magnitude<=3)restart={direction:d,count:0,total:0,last:0,at:now};
         if(!fresh&&used&&!reading&&(restart||(quiet&&magnitude>=8))&&magnitude>=8){
           if(!restart||restart.direction!==d||now-restart.at>120||magnitude<restart.last*.85){
             restart={direction:d,count:1,total:magnitude,last:magnitude,at:now};
