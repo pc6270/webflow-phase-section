@@ -58,3 +58,8 @@ html[data-phase-layout="phone"] #phase-mobile .hero::before,html[data-phase-layo
 /* Tablet copy: left aligned text, wrapping only at the available width. */
 html[data-phase-layout="tablet"] #phase-mobile :is(p,blockquote,.tablet-quote-track,.quote-followups),
 html[data-phase-layout="desktop"] #ps-root :is(.default-quote,.default-paragraph,.desktop-story-tagline,.sentence-track,.card-caption-desc){text-align:left!important;white-space:normal!important;text-wrap:wrap!important;}
+
+/* Page counters share the host Webflow display font on every layout. */
+html[data-phase-layout="desktop"] #ps-root .reel-page-indicator,
+html:not([data-phase-layout="desktop"]) #phase-mobile .counter,
+html:not([data-phase-layout="desktop"]) #phase-mobile .counter :is(.number,.slash,small){font-family:var(--font-display-en,'big-caslon-fb','Big Caslon CC','Big Caslon',serif)!important;}

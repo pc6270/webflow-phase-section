@@ -3668,6 +3668,12 @@ const phase01Queue = [
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
+      let ownedPosition=null,ownedUntil=0,lastCancelable=true;
+      let gesturePeak=0,gestureLow=Infinity,risingSamples=0,gestureBegan=0,previousMagnitude=0;
+      function ownPosition(top){ownedPosition=top;ownedUntil=performance.now()+240;scrollTo({top,behavior:'instant'});}
+      function releasePosition(){ownedPosition=null;ownedUntil=0;}
+      addEventListener('pointerdown',releasePosition,{passive:true});
+      addEventListener('resize',()=>{releasePosition();geometry=null;},{passive:true});
       // Share geometry within a frame instead of rescanning/measuring all
       // anchors for every high-frequency trackpad event.
       let geometry=null;
@@ -3705,9 +3711,9 @@ const phase01Queue = [
             if(document.documentElement.classList.contains('snap-disabled')){moving=false;desktopPagingTarget=null;pendingDirection=0;return;}
             const progress=motionDuration?Math.min(1,(performance.now()-motionStart)/motionDuration):1;
             const targetTop=anchorScrollTop(a),eased=1-Math.pow(1-progress,3);
-            scrollTo({top:progress===1?targetTop:from+(targetTop-from)*eased,behavior:'instant'});
+            ownPosition(progress===1?targetTop:from+(targetTop-from)*eased);
             if(progress===1){
-              scrollTo({top:anchorScrollTop(a),behavior:'instant'});
+              ownPosition(anchorScrollTop(a));
               moving=false;desktopPagingTarget=null;
               endProgrammaticScroll();
               if(pendingDirection){const d=pendingDirection;pendingDirection=0;used=step(d);}return;
@@ -3724,14 +3730,26 @@ const phase01Queue = [
         const magnitude=Math.abs(e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
         // Capture the boundary BEFORE native scrolling can overshoot into detail.
         // Consume the entering gesture, including its remaining momentum.
-        if(d>0&&scrollY<p[0]-2&&scrollY+magnitude>=p[0]-2){
+        if(d>0&&scrollY<p[0]-2&&scrollY>=p[0]-innerHeight*1.5){
           if(e.cancelable)e.preventDefault();
-          lastWheelAt=now;used=true;sum=0;reading=false;pendingDirection=0;
-          go(0);return;
+          lastWheelAt=now;lastCancelable=e.cancelable;sum=0;reading=false;pendingDirection=0;
+          const next=Math.min(p[0],scrollY+magnitude);
+          if(next>=p[0]-2){used=true;go(0);}else{used=false;ownPosition(next);}
+          return;
         }
-        if(!eligible(p,d))return;
-        const fresh=!lastWheelAt||gap>gestureIdle;
-        lastWheelAt=now;
+        if(!eligible(p,d)){releasePosition();return;}
+        // Safari can mark momentum events non-cancelable. A later cancelable
+        // event can start a new transaction without waiting for all tail events.
+        if(magnitude>previousMagnitude+2)risingSamples++;else risingSamples=0;
+        gestureLow=Math.min(gestureLow,magnitude);
+        const resumed=e.cancelable&&lastCancelable===false;
+        const deliberate=e.cancelable&&used&&now-gestureBegan>280&&risingSamples>=3&&
+          gestureLow<=gesturePeak*.18&&magnitude>=Math.max(32,gesturePeak*.65);
+        const fresh=!lastWheelAt||gap>gestureIdle||resumed||deliberate;
+        if(fresh){gestureBegan=now;gesturePeak=magnitude;gestureLow=magnitude;risingSamples=0;}
+        else gesturePeak=Math.max(gesturePeak,magnitude);
+        previousMagnitude=magnitude;lastCancelable=e.cancelable;lastWheelAt=now;
+        if(ownedPosition!==null)ownedUntil=now+240;
         if(fresh){used=false;sum=0;reading=false;}
         clearTimeout(timer);
         if(moving){
@@ -3745,12 +3763,12 @@ const phase01Queue = [
           const a=getNearestAnchor(),start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;
           // Own reading scroll too: a large wheel delta cannot escape its bounds.
           const target=Math.max(start,Math.min(start+travel,scrollY+d*magnitude));
-          scrollTo({top:target,behavior:'instant'});syncOuterReading();
+          ownPosition(target);syncOuterReading();
           used=true;reading=Math.abs(target-(d>0?start+travel:start))>2;return;
         }
         if(reading){if(e.cancelable)e.preventDefault();return;}
         if(used){if(e.cancelable)e.preventDefault();return;}
-        if((scrollY<=p[0]+2&&d<0)||(scrollY>=finalReadingEnd(p)-2&&d>0))return;
+        if((scrollY<=p[0]+2&&d<0)||(scrollY>=finalReadingEnd(p)-2&&d>0)){releasePosition();return;}
         if(e.cancelable)e.preventDefault();
         if(sum&&Math.sign(sum)!==d)sum=0;
         sum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
@@ -3761,6 +3779,10 @@ const phase01Queue = [
       addEventListener('touchend',()=>touch=null,{passive:true});addEventListener('touchcancel',()=>touch=null,{passive:true});
       addEventListener('scroll',()=>{
         const now=scrollY,p=positions();if(!p.length){previous=now;return}
+        if(!moving&&!programmaticScroll&&ownedPosition!==null&&performance.now()<ownedUntil&&
+          !document.documentElement.classList.contains('snap-disabled')&&!document.querySelector('.site-header.is-menu-open')&&Math.abs(now-ownedPosition)>.5){
+          scrollTo({top:ownedPosition,behavior:'instant'});previous=ownedPosition;return;
+        }
         const top=previous<p[0]-2&&now>=p[0]-2&&now>previous;
         const bottom=previous>p[p.length-1]+2&&now<=p[p.length-1]+2&&now<previous;
         previous=now;
