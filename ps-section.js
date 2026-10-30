@@ -3668,8 +3668,19 @@ const phase01Queue = [
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
-      const list=()=>getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
-      const positions=()=>list().map(anchorScrollTop);
+      // Share geometry within a frame instead of rescanning/measuring all
+      // anchors for every high-frequency trackpad event.
+      let geometry=null;
+      function readGeometry(){
+        if(!geometry){
+          const anchors=getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
+          geometry={anchors,positions:anchors.map(anchorScrollTop)};
+          requestAnimationFrame(()=>{geometry=null;});
+        }
+        return geometry;
+      }
+      const list=()=>readGeometry().anchors;
+      const positions=()=>readGeometry().positions;
       const nearest=p=>p.reduce((b,y,i)=>Math.abs(y-scrollY)<Math.abs(p[b]-scrollY)?i:b,0);
       const finalReadingEnd=p=>{const a=list().at(-1);return p[p.length-1]+(Number(a?.parentElement.dataset.pageReadTravel)||0);};
       const eligible=(p,d)=>!document.documentElement.classList.contains('snap-disabled')&&!document.querySelector('.site-header.is-menu-open')&&p.length && ((scrollY>=p[0]-2&&scrollY<=finalReadingEnd(p)+2)||(d<0&&scrollY>finalReadingEnd(p)&&scrollY<=finalReadingEnd(p)+innerHeight*.8));
@@ -3707,9 +3718,18 @@ const phase01Queue = [
       function step(d){const p=positions();if(!eligible(p,d))return false;if(scrollY<p[0]-2&&d>0){go(0);return true}if(scrollY>p[p.length-1]+2&&d<0){go(p.length-1);return true}const current=getNearestAnchor(),index=list().indexOf(current),i=(index>=0?index:nearest(p))+d;if(i<0||i>=p.length)return false;go(i);return true}
       addEventListener('wheel',e=>{
         if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;
-        const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;
+        const p=positions(),d=Math.sign(e.deltaY);
+        if(document.documentElement.classList.contains('snap-disabled')||document.querySelector('.site-header.is-menu-open')||!p.length)return;
         const now=performance.now(),gap=now-lastWheelAt;
         const magnitude=Math.abs(e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+        // Capture the boundary BEFORE native scrolling can overshoot into detail.
+        // Consume the entering gesture, including its remaining momentum.
+        if(d>0&&scrollY<p[0]-2&&scrollY+magnitude>=p[0]-2){
+          if(e.cancelable)e.preventDefault();
+          lastWheelAt=now;used=true;sum=0;reading=false;pendingDirection=0;
+          go(0);return;
+        }
+        if(!eligible(p,d))return;
         const fresh=!lastWheelAt||gap>gestureIdle;
         lastWheelAt=now;
         if(fresh){used=false;sum=0;reading=false;}
@@ -3739,7 +3759,19 @@ const phase01Queue = [
       addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('button,a,input,select,textarea,[contenteditable="true"]')?{x:e.touches[0].clientX,y:e.touches[0].clientY,used:false}:null},{passive:true});
       addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;const frame=e.target.closest?.('.canvas-frame'),canRead=canReadDesktopFrame(frame,d);if(!touch.used&&!moving&&!canRead&&((scrollY<=p[0]+2&&d<0)||(scrollY>=finalReadingEnd(p)-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(touch.used||Math.abs(dy)<55)return;touch.used=true;if(moving){pendingDirection=d;return}if(canRead){const a=getNearestAnchor(),start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;scrollTo({top:d>0?start+travel:start,behavior:'instant'});syncOuterReading();return}step(d)},{passive:false,capture:true});
       addEventListener('touchend',()=>touch=null,{passive:true});addEventListener('touchcancel',()=>touch=null,{passive:true});
-      addEventListener('scroll',()=>{const now=scrollY,p=positions();if(!p.length){previous=now;return}const top=previous<p[0]-2&&now>=p[0]-2&&now>previous,bottom=previous>p[p.length-1]+2&&now<=p[p.length-1]+2&&now<previous;previous=now;if(moving||programmaticScroll||document.documentElement.classList.contains('snap-disabled')||(!top&&!bottom))return;const i=top?0:p.length-1;used=true;if(touch)touch.used=true;clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0},top?120:300);scrollTo({top:p[i],behavior:'instant'});previous=p[i];if(!top)go(i)},{passive:true});
+      addEventListener('scroll',()=>{
+        const now=scrollY,p=positions();if(!p.length){previous=now;return}
+        const top=previous<p[0]-2&&now>=p[0]-2&&now>previous;
+        const bottom=previous>p[p.length-1]+2&&now<=p[p.length-1]+2&&now<previous;
+        previous=now;
+        if(moving||programmaticScroll||document.documentElement.classList.contains('snap-disabled')||document.querySelector('.site-header.is-menu-open')||(!top&&!bottom))return;
+        used=true;sum=0;reading=false;pendingDirection=0;
+        lastWheelAt=performance.now();if(touch)touch.used=true;
+        // Scrollbar/native entry must commit the opening state too. Never rearm
+        // on a fixed timer while trackpad momentum is still arriving.
+        clearTimeout(timer);go(top?0:p.length-1);
+        previous=scrollY;
+      },{passive:true});
     }
 
     window.addEventListener('scroll', handleWindowScroll, { passive: true });
