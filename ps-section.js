@@ -245,8 +245,11 @@
     const candidates=page?[frame.querySelector('.card-meta-header'),caption,frame.querySelector('.reel-nav-buttons')]:[frame.querySelector('.default-visual-box'),rows[rows.length-1]];
     const title=frame.querySelector('.section-title-box'),top=title.getBoundingClientRect().top-rect.top+offset;
     const bottom=Math.max(...candidates.filter(Boolean).map(e=>e.getBoundingClientRect().bottom-rect.top+offset));
-    const span=bottom-top,desired=Math.max(24,(available-span)/2);
-    const current=parseFloat(frame.style.getPropertyValue('--ps-compose-y'))||(innerHeight<=850?-66:-55.4771+Math.max(0,(available-760)/2));
+    // Both parts share the same title baseline; body length must not move it.
+    const desired=Math.max(24,Math.min(80,available*.12));
+    const saved=parseFloat(frame.style.getPropertyValue('--ps-compose-y'));
+    const rendered=parseFloat(getComputedStyle(title).translate.split(/\s+/).at(-1));
+    const current=Number.isFinite(saved)?saved:(Number.isFinite(rendered)?rendered+offset:-66);
     frame.style.setProperty('--ps-compose-y',(Math.round((current+desired-top)*2)/2)+'px');
   }
   function updateShortDesktopFrame(frame){
@@ -267,10 +270,10 @@
   }
   function outerReadingAnchor(){
     const anchors=getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
-    for(const a of anchors){const start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;if(scrollY>=start-2&&scrollY<start+travel-2)return a;}return null;
+    for(const a of anchors){const start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;if(travel>0&&scrollY>=start-2&&scrollY<=start+travel+2)return a;}return null;
   }
   function canReadDesktopFrame(frame,direction){
-    const a=outerReadingAnchor();if(a)return direction>0||scrollY>anchorScrollTop(a)+2;
+    const a=outerReadingAnchor();if(a){const start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;return direction>0?scrollY<start+travel-2:scrollY>start+2;}
     if(direction<0){const a=getNearestAnchor();if(a){const travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;return travel>0&&scrollY>anchorScrollTop(a)+2&&scrollY<=anchorScrollTop(a)+travel+2;}}return false;
   }
   function syncOuterReading(){
@@ -367,7 +370,7 @@
     if(canAnimate){
       const entering=page&&typeof previous!=='number';
       const leaving=!page&&typeof previous==='number';
-      const duration=(entering||leaving)?1000:280;
+      const duration=(entering||leaving)?1000*2/3:280;
       const delay=0;
       const easing='cubic-bezier(.25,1,.5,1)';
       story.rows.forEach((row,index)=>{
@@ -383,7 +386,7 @@
       });
       if(entering||leaving)story.animations.push(story.tagline.animate(
         entering?[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-18px)'}]:[{opacity:0,transform:'translateY(-18px)'},{opacity:1,transform:'translateY(0)'}],
-        {duration:1000,easing,fill:'backwards'}));
+        {duration,easing,fill:'backwards'}));
       story.animations.push(story.line.animate([{height:before.lineHeight},{height:story.line.style.height}],{duration,delay,easing,fill:'backwards'}));
       Promise.allSettled(story.animations.map(a=>a.finished)).then(()=>{
         if(story.revision!==revision)return;
@@ -446,20 +449,20 @@
         visual.animate([{opacity:0},{opacity:0}],{duration:280,easing:'cubic-bezier(0.25,1,0.5,1)'});
       }
       clone.style.removeProperty('opacity');
-      const animation=clone.animate([{opacity:1,transform:'none'},{opacity:morph?1:0,transform}],{duration:morph?280:(slideLeft||returnCard)?1500:180,easing:'cubic-bezier(0.25,1,0.5,1)',fill:'forwards'});
+      const animation=clone.animate([{opacity:1,transform:'none'},{opacity:morph?1:0,transform}],{duration:morph?280:(slideLeft||returnCard)?1000:180,easing:'cubic-bezier(0.25,1,0.5,1)',fill:'forwards'});
       animation.finished.catch(()=>{}).then(()=>{clone.remove();transitionOverlays.delete(clone);});
     });
     if(snapshots.length){const selectors=viewKind(state)==='page'?['.page-content-box','.cards-stack-container','.card-meta-header','.card-caption-desc','.reel-page-indicator','.reel-nav-buttons']:[viewKind(state)==='intro'?'.default-paragraphs':'.default-content-box'];selectors.forEach(selector=>{const el=frame.querySelector(selector);if(el&&getComputedStyle(el).display!=='contents'&&!(frame._desktopStory&&(selector==='.page-content-box'||selector==='.default-content-box'))){
       const enterFromRight=window.innerWidth>=1200&&selector==='.cards-stack-container'&&viewKind(previous)!=='page'&&viewKind(state)==='page';
       if(enterFromRight){
         const previousTransition=el.style.transition;el.style.transition='none';
-        const incoming=el.animate([{opacity:0,transform:'translateX(64px)'},{opacity:1,transform:'translateX(0)'}],{duration:1500,easing:'cubic-bezier(0.25,1,0.5,1)'});
+        const incoming=el.animate([{opacity:0,transform:'translateX(64px)'},{opacity:1,transform:'translateX(0)'}],{duration:1000,easing:'cubic-bezier(0.25,1,0.5,1)'});
         const restore=()=>{el.style.transition=previousTransition;};incoming.finished.then(restore,restore);
       }else el.animate([{opacity:0},{opacity:1}],{duration:180,easing:'cubic-bezier(0.25,1,0.5,1)'});
     }});}
     if(window.innerWidth>=1200&&viewKind(previous)==='page'&&viewKind(state)!=='page'&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
       const visual=frame.querySelector('.default-visual-box');
-      if(visual){visual.animate([{opacity:0,transform:'translateX(-64px)'},{opacity:1,transform:'translateX(0)'}],{duration:1500,easing:'cubic-bezier(.25,1,.5,1)'});}
+      if(visual){visual.animate([{opacity:0,transform:'translateX(-64px)'},{opacity:1,transform:'translateX(0)'}],{duration:1000,easing:'cubic-bezier(.25,1,.5,1)'});}
     }
     if(layoutReady&&viewKind(state)!==viewKind(previous))scrollToAnchor(phase,viewKind(state),matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
   }
@@ -3653,10 +3656,13 @@ const phase01Queue = [
 
     function setupDesktopPaging() {
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
+      let lastWheelMagnitude=0,lastWheelDirection=0,gestureStartedAt=0;
+      const gestureIdle=300;
       const list=()=>getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
       const positions=()=>list().map(anchorScrollTop);
       const nearest=p=>p.reduce((b,y,i)=>Math.abs(y-scrollY)<Math.abs(p[b]-scrollY)?i:b,0);
-      const eligible=(p,d)=>!document.documentElement.classList.contains('snap-disabled')&&p.length && ((scrollY>=p[0]-2&&scrollY<=p[p.length-1]+2)||(d<0&&scrollY>p[p.length-1]&&scrollY<=p[p.length-1]+innerHeight*.8));
+      const finalReadingEnd=p=>{const a=list().at(-1);return p[p.length-1]+(Number(a?.parentElement.dataset.pageReadTravel)||0);};
+      const eligible=(p,d)=>!document.documentElement.classList.contains('snap-disabled')&&!document.querySelector('.site-header.is-menu-open')&&p.length && ((scrollY>=p[0]-2&&scrollY<=finalReadingEnd(p)+2)||(d<0&&scrollY>finalReadingEnd(p)&&scrollY<=finalReadingEnd(p)+innerHeight*.8));
       function go(i){
         const a=list()[i];if(!a)return;moving=true;
         const phase=Number(a.dataset.phase),target=a.dataset.kind==='page'?selectedPages[phase-1]:'default';
@@ -3672,9 +3678,10 @@ const phase01Queue = [
           if(!committed&&performance.now()-start<1800){requestAnimationFrame(commit);return;}
           scrollToAnchor(a.dataset.phase,a.dataset.kind,samePhase||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth');
           function done(){
-            if((performance.now()-start>120&&Math.abs(scrollY-anchorScrollTop(a))<3)||performance.now()-start>2000){
+            const settled=performance.now()-start>(matchMedia('(prefers-reduced-motion: reduce)').matches?120:1000);
+            if((settled&&Math.abs(scrollY-anchorScrollTop(a))<3)||performance.now()-start>2400){
               moving=false;desktopPagingTarget=null;
-              if(pendingDirection){const d=pendingDirection;pendingDirection=0;step(d);}return;
+              if(pendingDirection){const d=pendingDirection;pendingDirection=0;used=step(d);}return;
             }requestAnimationFrame(done);
           }requestAnimationFrame(done);
         }commit();
@@ -3683,20 +3690,37 @@ const phase01Queue = [
       addEventListener('wheel',e=>{
         if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;
         const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;
-        const now=performance.now(),fresh=now-lastWheelAt>180;lastWheelAt=now;
+        const now=performance.now(),gap=now-lastWheelAt;
+        const magnitude=Math.abs(e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+        // An idle gap or a renewed strong impulse starts a gesture, not its tail.
+        const renewed=used&&now-gestureStartedAt>450&&magnitude>=18&&lastWheelMagnitude<=6&&magnitude>lastWheelMagnitude*3;
+        const reversed=d!==lastWheelDirection&&gap>70&&magnitude>=12;
+        const fresh=!lastWheelAt||gap>gestureIdle||renewed||reversed;
+        lastWheelAt=now;lastWheelMagnitude=magnitude;lastWheelDirection=d;
+        if(fresh)gestureStartedAt=now;
         if(fresh){used=false;sum=0;reading=false;}
-        clearTimeout(timer);timer=setTimeout(()=>{used=false;sum=0;reading=false},180);
-        if(moving){if(fresh)pendingDirection=d;if(e.cancelable)e.preventDefault();return;}
+        clearTimeout(timer);
+        if(moving){
+          if(fresh||sum){if(sum&&Math.sign(sum)!==d)sum=0;sum+=d*magnitude;if(Math.abs(sum)>=12){pendingDirection=d;sum=0;}}
+          used=true;if(e.cancelable)e.preventDefault();return;
+        }
         if(used&&!reading){if(e.cancelable)e.preventDefault();return;}
         const frame=e.target.closest?.('.canvas-frame');
-        if(canReadDesktopFrame(frame,d)){used=true;reading=true;return;}
+        if(canReadDesktopFrame(frame,d)){
+          if(e.cancelable)e.preventDefault();
+          const a=getNearestAnchor(),start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;
+          // Own reading scroll too: a large wheel delta cannot escape its bounds.
+          const target=Math.max(start,Math.min(start+travel,scrollY+d*magnitude));
+          scrollTo({top:target,behavior:'instant'});syncOuterReading();
+          used=true;reading=Math.abs(target-(d>0?start+travel:start))>2;return;
+        }
         if(reading){if(e.cancelable)e.preventDefault();return;}
         if(used){if(e.cancelable)e.preventDefault();return;}
-        if((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0))return;
+        if((scrollY<=p[0]+2&&d<0)||(scrollY>=finalReadingEnd(p)-2&&d>0))return;
         if(e.cancelable)e.preventDefault();
         if(sum&&Math.sign(sum)!==d)sum=0;
         sum+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
-        if(Math.abs(sum)>=32){used=step(d);sum=0;}
+        if(Math.abs(sum)>=12){used=step(d);sum=0;}
       },{passive:false,capture:true});
       addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('button,a,input,select,textarea,[contenteditable="true"]')?{x:e.touches[0].clientX,y:e.touches[0].clientY,used:false}:null},{passive:true});
       addEventListener('touchmove',e=>{if(!touch||e.touches.length!==1)return;const dx=e.touches[0].clientX-touch.x,dy=touch.y-e.touches[0].clientY,p=positions(),d=Math.sign(dy);const frame=e.target.closest?.('.canvas-frame');if(canReadDesktopFrame(frame,d)){touch.reading=true;return;}if(touch.reading){if(e.cancelable)e.preventDefault();return;}if(!dy||Math.abs(dx)>Math.abs(dy)||!eligible(p,d))return;if(!touch.used&&!moving&&((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0)))return;if(e.cancelable)e.preventDefault();if(!touch.used&&!moving&&Math.abs(dy)>=55)touch.used=step(d)},{passive:false,capture:true});
