@@ -3712,7 +3712,7 @@ const phase01Queue = [
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
       // Require silence before rearming: trackpad momentum can accelerate or reverse.
       const gestureIdle=180;
-      let ownedPosition=null,ownedUntil=0;
+      let ownedPosition=null,ownedUntil=0,lastIntentAt=0,restart=null;
       function ownPosition(top){ownedPosition=top;ownedUntil=performance.now()+240;scrollTo({top,behavior:'instant'});}
       function releasePosition(){ownedPosition=null;ownedUntil=0;}
       addEventListener('pointerdown',releasePosition,{passive:true});
@@ -3775,17 +3775,25 @@ const phase01Queue = [
         // Consume the entering gesture, including its remaining momentum.
         if(d>0&&scrollY<p[0]-2&&scrollY>=p[0]-innerHeight*1.5){
           if(e.cancelable)e.preventDefault();
-          lastWheelAt=now;sum=0;reading=false;pendingDirection=0;
+          lastWheelAt=now;if(magnitude>2)lastIntentAt=now;restart=null;sum=0;reading=false;pendingDirection=0;
           const next=Math.min(p[0],scrollY+magnitude);
           if(next>=p[0]-2){used=true;go(0);}else{used=false;ownPosition(next);}
           return;
         }
         if(!eligible(p,d)){releasePosition();return;}
-        // Acceleration, plateaus and cancelable toggles can all occur inside
-        // one physical swipe. They must never rearm a consumed transaction.
-        // A quiet interval plus a cancelable event admits the next gesture;
-        // delayed non-cancelable momentum remains part of the old gesture.
-        const fresh=!lastWheelAt||(gap>gestureIdle&&e.cancelable!==false);
+        // Tiny momentum must not postpone rearming forever. After a quiet
+        // interval, non-cancelable input needs a short stable pulse rather than
+        // an acceleration/toggle alone. One delayed decaying event is ignored.
+        const quiet=!lastIntentAt||now-lastIntentAt>gestureIdle;
+        let fresh=!lastWheelAt||(gap>gestureIdle&&e.cancelable!==false);
+        if(!fresh&&used&&!reading&&(restart||(quiet&&magnitude>=8))&&magnitude>2){
+          if(!restart||restart.direction!==d||now-restart.at>120||magnitude<restart.last*.85){
+            restart={direction:d,count:1,total:magnitude,last:magnitude,at:now};
+          }else{restart.count++;restart.total+=magnitude;restart.last=magnitude;restart.at=now;}
+          if(restart.count>=3&&restart.total>=24)fresh=true;
+        }
+        if(fresh)restart=null;
+        if(magnitude>2)lastIntentAt=now;
         lastWheelAt=now;
         if(ownedPosition!==null)ownedUntil=now+240;
         if(fresh){used=false;sum=0;reading=false;}
