@@ -3666,9 +3666,8 @@ const phase01Queue = [
 
     function setupDesktopPaging() {
       let used=false, sum=0, timer, touch=null, moving=false, reading=false, previous=scrollY, lastWheelAt=0, pendingDirection=0;
-      let lastWheelMagnitude=0,lastWheelDirection=0,gestureStartedAt=0;
-      let trough=Infinity,rising=0;
-      const gestureIdle=120;
+      // Require silence before rearming: trackpad momentum can accelerate or reverse.
+      const gestureIdle=180;
       const list=()=>getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
       const positions=()=>list().map(anchorScrollTop);
       const nearest=p=>p.reduce((b,y,i)=>Math.abs(y-scrollY)<Math.abs(p[b]-scrollY)?i:b,0);
@@ -3711,15 +3710,8 @@ const phase01Queue = [
         const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;
         const now=performance.now(),gap=now-lastWheelAt;
         const magnitude=Math.abs(e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
-        // An idle gap or a renewed strong impulse starts a gesture, not its tail.
-        if(magnitude>lastWheelMagnitude+1)rising++;else rising=0;
-        trough=Math.min(trough,magnitude);
-        const renewed=used&&now-gestureStartedAt>160&&magnitude>=8&&magnitude-trough>=6&&
-          ((rising>=2&&magnitude>=trough*1.25)||(magnitude>=18&&magnitude>=lastWheelMagnitude*1.8));
-        const reversed=d!==lastWheelDirection&&gap>70&&magnitude>=12;
-        const fresh=!lastWheelAt||gap>gestureIdle||renewed||reversed;
-        lastWheelAt=now;lastWheelMagnitude=magnitude;lastWheelDirection=d;
-        if(fresh){gestureStartedAt=now;trough=magnitude;rising=0;}
+        const fresh=!lastWheelAt||gap>gestureIdle;
+        lastWheelAt=now;
         if(fresh){used=false;sum=0;reading=false;}
         clearTimeout(timer);
         if(moving){
