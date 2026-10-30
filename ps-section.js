@@ -6,7 +6,7 @@
   'use strict';
   const root = document.getElementById('ps-root');
   if (!root) return;
-  if (window.matchMedia('(max-width:1199px)').matches) return;
+  if(window.PSLayout.mode!=='desktop')return;
 
   const ASSET_BASE = root.getAttribute('data-asset-base') || '';
   const ASSETS = {
@@ -110,6 +110,7 @@
     // remains an explicit override (the standalone preview uses zero).
     const sharedHeader = getComputedStyle(root).getPropertyValue('--site-header-height').trim();
     if (selector && /^\d+(\.\d+)?$/.test(selector)) navHeight = Number(selector);
+    else if(el&&el.getBoundingClientRect().height>0){navHeight=Math.max(0,['fixed','sticky'].includes(getComputedStyle(el).position)?el.getBoundingClientRect().bottom:el.getBoundingClientRect().height);}
     else if (sharedHeader) {
       const sharedProbe=document.createElement('div');
       sharedProbe.style.cssText='position:absolute;visibility:hidden;width:0;height:var(--site-header-height);pointer-events:none';
@@ -161,7 +162,7 @@
     root.style.setProperty('--ps-frame-height',(tablet?1366:desktopHeight)+'px');
     root.style.setProperty('--ps-sticky-top',(navHeight/scale)+'px');
     root.style.setProperty('--ps-view-height',Math.max(240,(window.visualViewport?.height||window.innerHeight)-navHeight)+'px');
-    root.classList.toggle('desktop-short',width>=1200&&desktopHeight>(window.visualViewport?.height||innerHeight)-navHeight+1);
+    root.classList.toggle('desktop-short',window.PSLayout.mode==='desktop'&&desktopHeight>(window.visualViewport?.height||innerHeight)-navHeight+1);
     if(width>=1200&&!root.classList.contains('desktop-short'))frames.forEach(frame=>{frame.scrollTop=0;});
     root.style.setProperty('--ps-page-distance',(mobile?300:tablet?380:420)+'px');
     frames.forEach((frame,i)=>setHomeGeometry(frame,i+1));
@@ -197,6 +198,7 @@
   };
   const transitionOverlays=new Set();
   function prepareStoryContent(){
+    root.querySelectorAll('.default-quote').forEach(q=>{q.innerHTML=q.innerHTML.replace(/<br\s*\/?>/gi,'');});
     root.querySelectorAll('.default-content-box').forEach(box=>{
       if(box.querySelector('.default-paragraphs'))return;
       const copy=document.createElement('div');copy.className='default-paragraphs';
@@ -234,21 +236,51 @@
       frame.style.setProperty('--ps-mobile-home-gap',Math.max(24,s.y-219)+'px');
     }
   }
-  function updateShortDesktopFrame(frame){
-    if(!root.classList.contains('desktop-short'))return;
-    const b=frame.getBoundingClientRect(),offset=frame.scrollTop;
-    const bottom=selector=>{const el=frame.querySelector(selector);return el&&el.getClientRects().length?el.getBoundingClientRect().bottom-b.top+offset:0;};
-    const page=frame.dataset.psState==='page';
-    const text=frame.querySelector('.sentence-track.is-active');
-    const quoteHeight=text?Math.max(text.offsetHeight,Number(text.dataset.storyFinalHeight)||0):120;
-    const number=frame.querySelector('.reel-page-indicator');
-    const numberHeight=number?number.offsetHeight:100;
-    const extent=page?Math.max(bottom('.card-caption-desc')+100,231+Math.max(quoteHeight+70,200)+numberHeight+150):Math.max(bottom(frame._desktopStory?'.desktop-story-text':'.default-paragraphs')+56,bottom('.default-visual-box')+40);
-    frame.style.setProperty('--ps-short-content-height',Math.ceil(Math.max(760,extent))+'px');
-    frame.style.setProperty('--ps-short-number-height',numberHeight+'px');
-    frame.style.setProperty('--ps-short-quote-height',Math.max(quoteHeight+70,200)+'px');
+  function calibrateDesktopFrame(frame){
+    const page=frame.dataset.psState==='page',story=frame.querySelector('.desktop-story-text');if(!story)return;
+    const available=Math.max(240,innerHeight-navHeight),caption=frame.querySelector('.card-caption-desc'),rows=story.querySelectorAll('.sentence-track');
+    const key=[innerWidth,available,page,caption?.offsetHeight,rows.length,rows[rows.length-1]?.offsetHeight,frame.querySelector('.desktop-story-tagline')?.offsetHeight].join(':');
+    if(frame.dataset.composeKey===key)return;frame.dataset.composeKey=key;
+    const rect=frame.getBoundingClientRect(),offset=Number(frame.dataset.outerReadOffset)||0;
+    const candidates=page?[frame.querySelector('.card-meta-header'),caption,frame.querySelector('.reel-nav-buttons')]:[frame.querySelector('.default-visual-box'),rows[rows.length-1]];
+    const title=frame.querySelector('.section-title-box'),top=title.getBoundingClientRect().top-rect.top+offset;
+    const bottom=Math.max(...candidates.filter(Boolean).map(e=>e.getBoundingClientRect().bottom-rect.top+offset));
+    const span=bottom-top,desired=Math.max(24,(available-span)/2);
+    const current=parseFloat(frame.style.getPropertyValue('--ps-compose-y'))||(innerHeight<=850?-66:-55.4771+Math.max(0,(available-760)/2));
+    frame.style.setProperty('--ps-compose-y',(Math.round((current+desired-top)*2)/2)+'px');
   }
-  function canReadDesktopFrame(frame,direction){return root.classList.contains('desktop-short')&&frame&&window.innerWidth>=1200&&frame.scrollHeight>frame.clientHeight+2&&(direction>0?frame.scrollTop+frame.clientHeight<frame.scrollHeight-2:frame.scrollTop>2);}
+  function updateShortDesktopFrame(frame){
+    calibrateDesktopFrame(frame);
+    if(innerWidth<1200)return;
+    const available=Math.max(240,innerHeight-navHeight),rect=frame.getBoundingClientRect(),offset=Number(frame.dataset.outerReadOffset)||0;
+    const bottom=el=>el&&el.getClientRects().length?el.getBoundingClientRect().bottom-rect.top+offset:0;
+    const page=frame.dataset.psState==='page';
+    if(!page){const rows=frame.querySelectorAll('.desktop-story-text .sentence-track');frame.dataset.homeExtent=String(Math.max(available,bottom(rows[rows.length-1])+32,bottom(frame.querySelector('.default-visual-box'))+24));}
+    else{const active=frame.querySelector('.sentence-track.is-active'),quote=active?active.offsetHeight:120;const number=frame.querySelector('.reel-page-indicator');const controls=(number?.offsetHeight||100)+50+7.5+28;frame.dataset.pageExtent=String(Math.max(available,bottom(frame.querySelector('.card-caption-desc'))+32,235+quote+controls));}
+    const home=Math.max(available,Number(frame.dataset.homeExtent)||available),detail=Math.max(available,Number(frame.dataset.pageExtent)||available);
+    frame.style.setProperty('--ps-short-content-height',Math.ceil(page?detail:home)+'px');frame.style.setProperty('--ps-short-number-height',(frame.querySelector('.reel-page-indicator')?.offsetHeight||100)+'px');
+    frame.style.setProperty('--ps-short-quote-height',Math.max(160,(frame.querySelector('.sentence-track.is-active')?.offsetHeight||120)+64)+'px');
+    const track=frame.parentElement,homeTravel=Math.max(0,home-available),pageTravel=Math.max(0,detail-available);
+    track.dataset.homeReadTravel=String(homeTravel);track.dataset.pageReadTravel=String(pageTravel);
+    track.style.setProperty('height',(available+homeTravel+420+pageTravel)+'px','important');
+    const anchor=track.querySelector('.snap-anchor-page');if(anchor)anchor.style.setProperty('top',(homeTravel+420)+'px','important');
+  }
+  function outerReadingAnchor(){
+    const anchors=getAnchors().filter(a=>root.contains(a)&&a.dataset.kind!=='intro');
+    for(const a of anchors){const start=anchorScrollTop(a),travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;if(scrollY>=start-2&&scrollY<start+travel-2)return a;}return null;
+  }
+  function canReadDesktopFrame(frame,direction){
+    const a=outerReadingAnchor();if(a)return direction>0||scrollY>anchorScrollTop(a)+2;
+    if(direction<0){const a=getNearestAnchor();if(a){const travel=Number(a.parentElement.dataset[a.dataset.kind==='page'?'pageReadTravel':'homeReadTravel'])||0;return travel>0&&scrollY>anchorScrollTop(a)+2&&scrollY<=anchorScrollTop(a)+travel+2;}}return false;
+  }
+  function syncOuterReading(){
+    root.querySelectorAll('.canvas-frame').forEach(frame=>{const track=frame.parentElement,phase=Number(track.querySelector('.snap-anchor').dataset.phase),page=frame.dataset.psState==='page',anchor=getAnchor(phase,page?'page':'default'),travel=Number(track.dataset[page?'pageReadTravel':'homeReadTravel'])||0;const offset=Math.min(travel,Math.max(0,scrollY-anchorScrollTop(anchor)));frame.dataset.outerReadOffset=String(offset);frame.style.setProperty('--ps-read-offset',offset+'px');});
+  }
+  function setupOuterReading(){
+    let pending=false;function schedule(){if(!pending){pending=true;requestAnimationFrame(()=>{pending=false;syncOuterReading();});}}
+    addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});
+    const observer=new MutationObserver(()=>{root.querySelectorAll('.canvas-frame').forEach(updateShortDesktopFrame);schedule();});root.querySelectorAll('.canvas-frame').forEach(f=>observer.observe(f,{attributes:true,attributeFilter:['data-ps-state']}));schedule();
+  }
   function positionMobileControls(frame){
     if(window.innerWidth>=1200){const number=frame.querySelector('.reel-page-indicator');if(number)frame.style.setProperty('--ps-desktop-number-height',number.offsetHeight+'px');}
     updateShortDesktopFrame(frame);
@@ -1629,6 +1661,7 @@ const phase01Queue = [
     }
 
     function getNearestAnchor() {
+      const reading=outerReadingAnchor();if(reading)return reading;
       const st = window.scrollY;
       let best = null, bestD = Infinity;
       getAnchors().forEach(a => {
@@ -3646,7 +3679,7 @@ const phase01Queue = [
           }requestAnimationFrame(done);
         }commit();
       }
-      function step(d){const p=positions();if(!eligible(p,d))return false;if(scrollY<p[0]-2&&d>0){go(0);return true}if(scrollY>p[p.length-1]+2&&d<0){go(p.length-1);return true}const i=nearest(p)+d;if(i<0||i>=p.length)return false;go(i);return true}
+      function step(d){const p=positions();if(!eligible(p,d))return false;if(scrollY<p[0]-2&&d>0){go(0);return true}if(scrollY>p[p.length-1]+2&&d<0){go(p.length-1);return true}const current=getNearestAnchor(),index=list().indexOf(current),i=(index>=0?index:nearest(p))+d;if(i<0||i>=p.length)return false;go(i);return true}
       addEventListener('wheel',e=>{
         if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;
         const p=positions(),d=Math.sign(e.deltaY);if(!eligible(p,d))return;
@@ -3657,6 +3690,7 @@ const phase01Queue = [
         if(used&&!reading){if(e.cancelable)e.preventDefault();return;}
         const frame=e.target.closest?.('.canvas-frame');
         if(canReadDesktopFrame(frame,d)){used=true;reading=true;return;}
+        if(reading){if(e.cancelable)e.preventDefault();return;}
         if(used){if(e.cancelable)e.preventDefault();return;}
         if((scrollY<=p[0]+2&&d<0)||(scrollY>=p[p.length-1]-2&&d>0))return;
         if(e.cancelable)e.preventDefault();
@@ -3678,6 +3712,7 @@ const phase01Queue = [
     setupDesktopPaging();
     setupDesktopSideRail();
     setupDesktopHints();
+    setupOuterReading();
     const controlsObserver=new ResizeObserver(()=>requestAnimationFrame(()=>root.querySelectorAll(".canvas-frame").forEach(positionMobileControls)));
     root.querySelectorAll(".cards-stack-container,.card-caption-desc").forEach(el=>controlsObserver.observe(el));
     updateImageSources();

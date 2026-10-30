@@ -1,0 +1,6 @@
+(()=>{const forced=location.hostname==='127.0.0.1'?new URLSearchParams(location.search).get('mode'):null;
+function choose(){const coarse=matchMedia('(hover:none) and (pointer:coarse)').matches,landscape=innerWidth>innerHeight,short=Math.min(screen.width,screen.height);const phone=innerWidth<768||(coarse&&landscape&&short<=480);return forced|| (phone?'phone':innerWidth<1200?'tablet':'desktop');}
+const mode=choose();window.PSLayout={mode};document.documentElement.dataset.phaseLayout=mode;document.documentElement.style.setProperty('--ps-phone-width',Math.min(430,Math.min(screen.width,screen.height)||430)+'px');
+window.phaseMedia=query=>{const q=query.replace(/\s/g,'');let matches;if(q==='(max-width:1199px)')matches=mode!=='desktop';else if(q==='(min-width:768px)')matches=mode==='tablet';else if(q==='(min-width:768px)and(max-width:1199px)')matches=mode==='tablet';else return matchMedia(query);return{matches,addEventListener(){},removeEventListener(){}};};
+let resize;addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>{if(choose()!==mode)location.reload();},150)});
+})();

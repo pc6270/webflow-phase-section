@@ -1,0 +1,56 @@
+
+/* One vertical scroll source. Header remains owned by Webflow. */
+html[data-phase-layout="desktop"] #ps-root .canvas-frame.sticky-frame{height:var(--ps-view-height)!important;overflow:hidden!important;overscroll-behavior:auto;}
+html[data-phase-layout="desktop"] #ps-root .canvas-frame::after{display:none!important;}
+html[data-phase-layout="desktop"] #ps-root .canvas-frame>:is(.section-title-box,.default-content-box,.default-visual-box,.page-content-box,.card-meta-header,.cards-stack-container,.card-caption-desc,.reel-page-indicator,.reel-nav-buttons,.desktop-story-text){translate:0 calc(-76.5px * var(--ps-desktop-y-scale,1) + max(0px,(var(--ps-view-height) - 760px)/2) - var(--ps-read-offset,0px));}
+/* Low windows: lift the composition and reserve less image height. */
+@media(max-height:850px){html[data-phase-layout="desktop"] #ps-root .canvas-frame>:is(.section-title-box,.default-content-box,.default-visual-box,.page-content-box,.card-meta-header,.cards-stack-container,.card-caption-desc,.reel-page-indicator,.reel-nav-buttons,.desktop-story-text){translate:0 calc(-92px * var(--ps-desktop-y-scale,1) - var(--ps-read-offset,0px));}
+html[data-phase-layout="desktop"] #ps-root{--card-active-width:min(480px,calc(50vw - 85px),calc(max(280px,100dvh - var(--ps-nav-h) - 300px))*521/393);--card-active-height:calc(var(--card-active-width)*393/521);}
+html[data-phase-layout="desktop"] #ps-root .cards-stack-container{width:var(--card-active-width)!important;height:var(--card-active-height)!important;}
+html[data-phase-layout="desktop"] #ps-root .card-caption-desc{top:calc(235px + var(--card-active-height) + 22px)!important;}
+html[data-phase-layout="desktop"] #ps-root .default-visual-box{scale:.9;transform-origin:center;}}
+html[data-phase-layout="tablet"] #ps-root,html[data-phase-layout="phone"] #ps-root{display:none!important;}
+html[data-phase-layout="tablet"] #phase-mobile .hero>blockquote,html[data-phase-layout="tablet"] #phase-mobile .shared-quote{white-space:normal;text-wrap:pretty;}
+html[data-phase-layout="phone"] #phase-mobile{width:min(100%,var(--ps-phone-width,430px));max-width:var(--ps-phone-width,430px);margin-inline:auto;overflow-x:visible!important;}
+html[data-phase-layout="phone"] .section-9{background:#f0ebe0;overflow-x:clip;}
+html[data-phase-layout="phone"] #phase-mobile .phase-block{overflow:visible;}
+html[data-phase-layout="phone"] #phase-mobile .scene,html[data-phase-layout="phone"] #phase-mobile .ellipse-wrap{pointer-events:none;}
+html[data-phase-layout="phone"] #phase-mobile .card{width:100%;}
+html[data-phase-layout="phone"] #psScrollGuide{display:none!important;}
+html[data-phase-layout="tablet"] #phase-mobile .shared-chapter-overlay{width:min(68%,760px);}
+
+@media(max-height:850px){html[data-phase-layout="desktop"] #ps-root{--card-active-width:min(460px,calc(50vw - 85px),calc(max(240px,100dvh - var(--ps-nav-h) - 380px))*521/393)!important;--card-active-height:calc(var(--card-active-width)*393/521)!important;}html[data-phase-layout="desktop"] #ps-root .card-caption-desc{width:var(--card-active-width)!important;}}
+html[data-phase-layout="desktop"] #ps-root .desktop-story-tagline{white-space:normal;text-wrap:pretty;}
+html[data-phase-layout="desktop"] #ps-root #centerConnectingLine1{height:calc(var(--ps-view-height) - 656px * var(--ps-desktop-y-scale))!important;}
+html[data-phase-layout="desktop"] #ps-root :is(#centerConnectingLine2,#centerConnectingLine3){height:var(--ps-view-height)!important;}
+html[data-phase-layout="desktop"] #ps-root .phase-scroll-track:not(:last-child)::after{content:'';position:absolute;left:50%;width:2px;top:var(--ps-continuation-top,var(--ps-view-height));bottom:-1px;background:rgba(152,122,107,.35);transform:translateX(-50%);z-index:26;pointer-events:none;}
+
+html[data-phase-layout="phone"] #phase-mobile .hero{height:auto!important;min-height:740px;display:flex;flex-direction:column;gap:24px;padding-top:40px;padding-bottom:32px;overflow:visible!important;}
+html[data-phase-layout="phone"] #phase-mobile .hero>.hero-title,html[data-phase-layout="phone"] #phase-mobile .hero>blockquote{position:relative;inset:auto;width:77.12%;margin:0 auto;flex:none;}
+html[data-phase-layout="phone"] #phase-mobile .hero>.scene{position:relative;inset:auto;flex:none;width:100%;height:430px;min-height:0;margin:0;}
+html[data-phase-layout="phone"] #phase-mobile .hero .original-hero{width:100%;height:100%;object-fit:contain;}
+html[data-phase-layout="phone"] .section-9{position:relative;z-index:2;isolation:isolate;background:#f0ebe0;}
+html[data-phase-layout="phone"] section.section-5{overflow:clip;}
+
+html[data-phase-layout="desktop"] #ps-root .reel-nav-buttons{top:calc(var(--ps-short-content-height,var(--ps-view-height)) - 70px - var(--btn-size,50px))!important;bottom:auto!important;}
+html[data-phase-layout="desktop"] #ps-root .reel-page-indicator{top:calc(var(--ps-short-content-height,var(--ps-view-height)) - 70px - var(--btn-size,50px) - 7.5px - var(--ps-short-number-height,100px))!important;bottom:auto!important;}
+@media(max-height:850px){html[data-phase-layout="desktop"] #ps-root .canvas-frame>:is(.section-title-box,.default-content-box,.default-visual-box,.page-content-box,.card-meta-header,.cards-stack-container,.card-caption-desc,.reel-page-indicator,.reel-nav-buttons,.desktop-story-text){translate:0 calc(-66px - var(--ps-read-offset,0px))!important;}}
+html[data-phase-layout="phone"] #phase-mobile,html[data-phase-layout="phone"] #phase-mobile .phase-block{background:transparent;isolation:auto;}
+html[data-phase-layout="phone"] #phase-mobile .hero{isolation:auto;}
+
+/* A measured common offset balances the actual content bounds. */
+html[data-phase-layout="desktop"] #ps-root .canvas-frame>:is(.section-title-box,.default-content-box,.default-visual-box,.page-content-box,.card-meta-header,.cards-stack-container,.card-caption-desc,.reel-page-indicator,.reel-nav-buttons,.desktop-story-text){translate:0 calc(var(--ps-compose-y,-66px) - var(--ps-read-offset,0px))!important;}
+/* Phone artwork belongs to the full-width stage, never the narrow text column. */
+html[data-phase-layout="phone"] #phase-mobile .phase-block{isolation:isolate;}
+html[data-phase-layout="phone"] #phase-mobile .hero>.curve{display:none!important;}
+html[data-phase-layout="phone"] .phone-wide-background{position:absolute;left:calc(50% - 50vw);top:0;bottom:0;width:100vw;z-index:-1;background:#f0ebe0;isolation:isolate;overflow:hidden;pointer-events:none;}
+html[data-phase-layout="phone"] .phone-wide-background>img{position:absolute;top:0;left:50%;width:max(1100px,100%);max-width:none;height:600px;transform:translateX(-50%) scaleY(-1);mix-blend-mode:screen;}
+html[data-phase-layout="phone"] .phone-wide-background::before{content:'';position:absolute;inset:0 0 auto;height:180px;z-index:1;background:linear-gradient(to bottom,var(--phone-entry-color,#f0ebe0),transparent);}
+html[data-phase-layout="phone"] .phone-wide-background::after{content:'';position:absolute;left:0;right:0;top:420px;height:180px;background:linear-gradient(to bottom,transparent,#f0ebe0);}
+/* Line start, length and final diamond share one viewport-height basis. */
+html[data-phase-layout="desktop"] #ps-root #centerConnectingLine1{top:calc(var(--ps-view-height)*656/1048)!important;height:calc(var(--ps-view-height) - var(--ps-view-height)*656/1048)!important;}
+html[data-phase-layout="desktop"] #ps-root :is(#centerConnectingLine2,#centerConnectingLine3){top:0!important;height:var(--ps-view-height)!important;}
+html[data-phase-layout="desktop"] #ps-root #centerConnectingLine4{top:0!important;height:calc(var(--ps-view-height)*656/1048 + 6px)!important;}
+html[data-phase-layout="desktop"] #ps-root .center-line-diamond-mid{top:calc(var(--ps-view-height)*656/1048)!important;}
+html[data-phase-layout="phone"] #phase-mobile .hero{background:transparent!important;}
+html[data-phase-layout="phone"] #phase-mobile .hero::before,html[data-phase-layout="phone"] #phase-mobile .hero::after{display:none!important;}
