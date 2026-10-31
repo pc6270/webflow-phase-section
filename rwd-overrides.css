@@ -81,5 +81,21 @@ html[data-phase-layout="phone"] #phase-mobile .wf-scroll-arrow-box{width:12px;he
 html[data-phase-layout="phone"] #phase-mobile .wf-scroll-label{bottom:13px;font-size:8px;line-height:1;}
 }
 
-/* Phone Chinese chapter titles use the host font and the shipped 600 face. */
-html[data-phase-layout="phone"] #phase-mobile :is(.hero-title h1,.hero-title h2,.card-heading h2){font-family:var(--font-display-cn,'SweiSpringCJKtc',IntegrationSpring,'Noto Serif TC',serif)!important;font-weight:600!important;font-synthesis:none;}
+/* Phase 02 phone cue: draw the border at its final size, with paint clearance. */
+html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .intro>.scroll{
+ display:flex;align-items:center;justify-content:center;flex:none;
+ width:40px;height:62px;min-height:62px;padding:0;overflow:visible!important;
+ position:relative;z-index:5;isolation:isolate;translate:none;
+}
+html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .intro>.scroll .wf-scroll-indicator{
+ width:30px;height:46.5px;min-height:46.5px;flex:0 0 auto;margin:0;
+ border-radius:999px;transform:none!important;-webkit-transform:none!important;
+ transition:none;overflow:visible!important;
+}
+html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .wf-scroll-arrow-box{width:10.5px;height:15px;margin-top:7.5px;flex:none;}
+html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .wf-scroll-label{bottom:12px;font-size:7.125px;line-height:1;}
+@media(orientation:landscape){
+ html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .intro>.scroll .wf-scroll-indicator{width:32px;height:50px;min-height:50px;}
+ html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .wf-scroll-arrow-box{width:12px;height:16px;margin-top:8px;}
+ html[data-phase-layout="phone"] #phase-mobile #phase-mobile-02 .wf-scroll-label{bottom:13px;font-size:8px;}
+}
