@@ -80,3 +80,6 @@ html[data-phase-layout="phone"] #phase-mobile .wf-scroll-indicator{width:32px;he
 html[data-phase-layout="phone"] #phase-mobile .wf-scroll-arrow-box{width:12px;height:16px;margin-top:8px;}
 html[data-phase-layout="phone"] #phase-mobile .wf-scroll-label{bottom:13px;font-size:8px;line-height:1;}
 }
+
+/* Phone Chinese chapter titles use the host font and the shipped 600 face. */
+html[data-phase-layout="phone"] #phase-mobile :is(.hero-title h1,.hero-title h2,.card-heading h2){font-family:var(--font-display-cn,'SweiSpringCJKtc',IntegrationSpring,'Noto Serif TC',serif)!important;font-weight:600!important;font-synthesis:none;}
