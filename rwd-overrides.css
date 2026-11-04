@@ -82,7 +82,7 @@ html[data-phase-layout="phone"] #phase-mobile .wf-scroll-label{bottom:13px;font-
 }
 
 /* Phone Chinese chapter titles use the host font and the shipped 600 face. */
-html[data-phase-layout="phone"] #phase-mobile :is(.hero-title h1,.hero-title h2,.card-heading h2){font-family:var(--font-display-cn,'SweiSpringCJKtc',IntegrationSpring,'Noto Serif TC',serif)!important;font-weight:600!important;font-synthesis:none;}
+html[data-phase-layout="phone"] #phase-mobile :is(.hero-title h2,.card-heading div:where(.phase-name-copy)){font-family:var(--font-display-cn,'SweiSpringCJKtc',IntegrationSpring,'Noto Serif TC',serif)!important;font-weight:600!important;font-synthesis:none;}
 
 /* Phone chapter cues match the existing banner's 40x62px capsule. */
 html[data-phase-layout="phone"] #phase-mobile .intro>.scroll{display:flex!important;align-items:center;justify-content:center;width:56px;height:78px;min-height:78px;overflow:visible!important;clip-path:none;isolation:isolate;}
