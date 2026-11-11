@@ -73,23 +73,23 @@
     // ==========================================
     "card_09.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc7483252649e5eae6d0cb_09_card.avif",
     "card_10.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74840ebe54f4c04653f8_10_card.avif",
-    "card_11.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74841efce99d35cba2e8_11_card.avif",
+    "card_11.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74841efce99d35cba2e8_a8f37263946a9f847d4880ffc6d4e813_11_card.avif",
 
     // ==========================================
     // E. Phase 03 卡片內容插圖 (4 張，已轉為 .avif)
     // ==========================================
-    "card_12.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74853715fdc430c60fab_12_card.avif",
-    "card_13.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74841a0f9d9c63514810_13_card.avif",
-    "card_14.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74845f514da625e6a77e_14_card.avif",
-    "card_15.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc748454f9656736f45f9a_15_card.avif",
+    "card_12.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74853715fdc430c60fab_3113d7aa5296dd462a824a8c833e0593_12_card.avif",
+    "card_13.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74841a0f9d9c63514810_28a8b552487c1c4d7fb4e47f60269a38_13_card.avif",
+    "card_14.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74845f514da625e6a77e_aba6d451cebcc865f4718c8dbcbbd473_14_card.avif",
+    "card_15.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc748454f9656736f45f9a_9d6d0c137fb43ef0ec3ced858e8b489e_15_card.avif",
 
     // ==========================================
     // F. Phase 04 卡片內容插圖 (4 張，已轉為 .avif)
     // ==========================================
-    "card_16.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74831efce99d35cba2ca_16_card.avif",
-    "card_17.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74853715fdc430c60fc3_17_card.avif",
-    "card_18.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74855ed8eae53b67c3ea_18_card.avif",
-    "card_19.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc748554f9656736f45fae_19_card.avif"
+    "card_16.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74831efce99d35cba2ca_47230c2bed890d9e4f05555a5f754957_16_card.avif",
+    "card_17.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74853715fdc430c60fc3_dbd3d88f86e0bddfc92fb20c2a877b18_17_card.avif",
+    "card_18.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc74855ed8eae53b67c3ea_bcbae82847a2a151102d959fc363df09_18_card.avif",
+    "card_19.avif": "https://cdn.prod.website-files.com/66f11d3496b859f0be0769bc/6acc748554f9656736f45fae_5a78e5cac5a8d38e16a03146454908e9_19_card.avif"
   };
 
   // 智慧資源定位器：支援 .avif / .webp / .png 交叉比對，無論填寫哪種副檔名皆可自動對應
